@@ -1,5 +1,5 @@
-import Header from "./Header";
-import { Outlet } from "react-router-dom";
+import Header from "./Header"
+import { Outlet } from "react-router-dom"
 
 export default function Layout() {
   return (
@@ -14,5 +14,5 @@ export default function Layout() {
         © {new Date().getFullYear()} Smart Finance Tracker. All rights reserved.
       </footer>
     </div>
-  );
+  )
 }
