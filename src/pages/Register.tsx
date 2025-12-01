@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
 import { register } from "../services/auth"
+import Swal from "sweetalert2"
+
 
 export default function Register() {
   const navigate = useNavigate()
@@ -17,14 +19,28 @@ export default function Register() {
     e.preventDefault()
 
     if (!username || !email || !password || !confirm) {
-      alert("All fields are required")
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "All fields are required!",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      })
       return
     }
 
+
     if (password !== confirm) {
-      alert("Passwords do not match")
+      Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "Passwords do not match!",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      })
       return
     }
+
 
     setLoading(true)
 
@@ -36,14 +52,34 @@ export default function Register() {
       console.log(res.data)
       console.log(res.message)
 
-      alert(`Reginstration successful! Email: ${res?.data?.email}`)
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: `Email: ${res?.data?.email}`,
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      })
       navigate("/login")
 
     } catch (err: any) {
       if (err.response?.status === 400) {
-        alert("Email already registered")
+        Swal.fire({
+          icon: "error",
+          title: "Registration Failed",
+          text: "Email already registered!",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK"
+        })
+
       } else {
-        alert(err.response?.data?.message || "Something went wrong")
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.response?.data?.message || "Something went wrong",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK"
+        })
+
       }
     } finally {
       setLoading(false)
@@ -71,7 +107,7 @@ export default function Register() {
 
           <div>
             <label className="block text-gray-300 mb-1">Username</label>
-            <input className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Your username" value={username} onChange={(e) => setUsername(e.target.value)}/>
+            <input className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Your username" value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
 
           <div>
@@ -83,17 +119,17 @@ export default function Register() {
             <div className="flex justify-between items-center">
               <label className="text-gray-300 mb-1">Password</label>
 
-              <button type="button" onClick={() => setShowPw(!showPw)}className="text-xs text-blue-400 hover:text-blue-300">
+              <button type="button" onClick={() => setShowPw(!showPw)} className="text-xs text-blue-400 hover:text-blue-300">
                 {showPw ? "Hide" : "Show"}
               </button>
             </div>
 
-            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 ocus:ring-2 focus:ring-purple-600 focus:outline-none" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)}/>
+            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 ocus:ring-2 focus:ring-purple-600 focus:outline-none" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div>
             <label className="block text-gray-300 mb-1">Confirm Password</label>
-            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-600 focus:outline-none" placeholder="Re-enter password" value={confirm} onChange={(e) => setConfirm(e.target.value)}/>
+            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-600 focus:outline-none" placeholder="Re-enter password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 transition shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
