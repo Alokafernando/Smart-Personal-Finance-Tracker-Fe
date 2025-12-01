@@ -23,9 +23,10 @@ const RequireAuth = ({ children, roles }: RequireAuthTypes) => {
   }
 
   if (!user) {
-    // return <Navigate to="/login" replace />
-    console.log("user havent and move to /login")
+    // alert("User can't access. Please login first.");
+    return <Navigate to="/login" replace />
   }
+
 
   if (roles && !roles.some((role) => user.roles?.includes(role))) {
     return (
