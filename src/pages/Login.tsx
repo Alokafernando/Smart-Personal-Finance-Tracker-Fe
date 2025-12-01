@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react"
 import { getUserDetails, login } from "../services/auth"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/authContext"
+import Swal from "sweetalert2"
+
 
 export default function Login() {
   const navigate = useNavigate()
@@ -16,9 +18,16 @@ export default function Login() {
     e.preventDefault()
 
     if (!email || !password) {
-      alert("All fields are required")
+      Swal.fire({
+        icon: "warning",
+        title: "Oops...",
+        text: "All fields are required!",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      })
       return
     }
+
 
     setLoading(true)
 
@@ -26,10 +35,17 @@ export default function Login() {
       const res = await login(email, password)
 
       if (!res.data.accessToken) {
-        alert("Login failed")
+        Swal.fire({
+          icon: "error",
+          title: "Login Failed",
+          text: "Invalid email or password.",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK"
+        })
         setLoading(false)
         return
       }
+
 
       localStorage.setItem("accessToken", res.data.accessToken)
       localStorage.setItem("refreshToken", res.data.refreshToken)
@@ -40,8 +56,15 @@ export default function Login() {
       navigate("/home")
     } catch (err) {
       console.error(err)
-      alert("Invalid credentials")
-    } finally {
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: "Invalid credentials. Please try again.",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK"
+      })
+    }
+    finally {
       setLoading(false)
     }
   }
@@ -68,7 +91,7 @@ export default function Login() {
 
           <div>
             <label className="block text-gray-300 mb-1">Email</label>
-            <input type="email" className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)}/>
+            <input type="email" className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
 
           <div>
@@ -79,7 +102,7 @@ export default function Login() {
               </button>
             </div>
 
-            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-600 focus:outline-none transition" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)}/>
+            <input type={showPw ? "text" : "password"} className="w-full px-4 py-3 rounded-xl bg-[#1b1f33] border border-white/10 text-gray-200 focus:ring-2 focus:ring-purple-600 focus:outline-none transition" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-700 hover:opacity-90 transition shadow-lg disabled:opacity-60 disabled:cursor-not-allowed" >
