@@ -1,18 +1,24 @@
-import Header from "./Header"
+import Sidebar from "./Header"
 import { Outlet } from "react-router-dom"
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
+    <div className="flex min-h-screen bg-gray-50">
 
-      <main className="flex-1 container mx-auto p-4 w-full">
-        <Outlet />
-      </main>
+      <Sidebar />
 
-      <footer className="bg-gray-100 text-gray-600 text-center py-4 mt-auto">
-        © {new Date().getFullYear()} Smart Finance Tracker. All rights reserved.
-      </footer>
+
+      <div className="flex-1 flex flex-col">
+
+        <main className="flex-1 p-4 overflow-y-auto">
+          <Outlet />
+        </main>
+
+        <footer className="bg-gray-100 text-gray-600 text-center py-4">
+          © {new Date().getFullYear()} Smart Finance Tracker. All rights reserved.
+        </footer>
+
+      </div>
     </div>
   )
 }
