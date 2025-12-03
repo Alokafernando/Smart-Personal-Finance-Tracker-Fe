@@ -2,13 +2,17 @@ import React, { useEffect, useState, type ChangeEvent } from "react"
 import { User, Save, Upload, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
 import { getUserDetails } from "../services/auth"
+import { updateUserDetails } from "../services/user"
+import { useAuth } from "../context/authContext"
+import Swal from "sweetalert2"
 
 
 export default function SettingsPage() {
+  const { user } = useAuth()
 
   const [profilePic, setProfilePic] = useState<string>(defaultUser)
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [userData, setUserData] = useState({ name: "", email: "" })
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
 
   // get username and email from the getUserDetails method's response
@@ -28,12 +32,49 @@ export default function SettingsPage() {
     fetchUser();
   }, []);
 
-  //update
+  //update username
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
+    if (!user?.userId) {
+      alert("User not logged in")
+      return
+    }
+
+    try {
+      const payload = {
+        username: userData.name,
+        role: user.role,
+        password: undefined
+      };
+
+      const res = await updateUserDetails(user.userId, payload);
+      Swal.fire({
+        icon: "success",
+        title: "Profile Updated",
+        text: "Your profile has been updated successfully!",
+        confirmButtonColor: "#2563eb",
+      });
+    } catch (err: any) {
+      console.error("Failed to update user: ", err.response?.data || err);
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: "Failed to update your profile. Please try again.",
+        confirmButtonColor: "#dc2626",
+      });
+
+    }
+  }
+
+ // Update userData state as the user types in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setUserData((prev) => ({ ...prev, [name]: value }))
   }
+
+
+
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -49,10 +90,10 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert("Profile updated successfully!")
-  }
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   alert("Profile updated successfully!")
+  // }
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,23 +158,27 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1">
-  <label className="text-sm font-medium text-gray-700">
-    Email Address
-  </label>
-  <div className="flex items-center border rounded-xl px-4 py-2 bg-gray-50 shadow-sm">
-    <Mail size={18} className="text-gray-400 mr-2" />
-    <input
-      type="email"
-      name="email"                // MUST match the state key
-      value={userData.email || ""} // fallback to empty string
-      onChange={handleChange}
-      className="flex-1 bg-transparent outline-none"
-    />
-  </div>
-</div>
+              <label className="text-sm font-medium text-gray-700">
+                Email Address
+              </label>
+              <div className="flex items-center border rounded-xl px-4 py-2 bg-gray-50 shadow-sm">
+                <Mail size={18} className="text-gray-400 mr-2" />
+                <input
+                  type="email"
+                  name="email"
+                  value={userData.email || ""}
+                  onChange={handleChange}
+                  className="flex-1 bg-transparent outline-none"
+                  disabled
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1 ml-1">
+                sorry email cannot editable
+              </p>
+            </div>
 
             <div className="flex items-center gap-3 pt-4">
-              <button type="submit" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition active:scale-95" >
+              <button type="submit" onClick={handleSubmit} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition active:scale-95" >
                 <Save size={18} />
                 Save Changes
               </button>
