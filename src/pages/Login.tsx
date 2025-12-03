@@ -54,12 +54,15 @@ export default function Login() {
       setUser(detail.data)
 
       navigate("/home")
-    } catch (err) {
+    } catch (err: any) {
       console.error(err)
+
+      const message = err?.response?.data?.message || "Invalid credentials. Please try again."
+
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: "Invalid credentials. Please try again.",
+        text: message,
         confirmButtonColor: "#3085d6",
         confirmButtonText: "OK"
       })
