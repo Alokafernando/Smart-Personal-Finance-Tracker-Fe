@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { useAuth } from "../context/authContext"
 import Layout from "../components/Layout"
 
-const Home = lazy(() => import("../pages/Home"))
+const Home = lazy(() => import("../pages/Home")) // dashboard
 const Login = lazy(() => import("../pages/Login"))
 const Register = lazy(() => import("../pages/Register"))
 const Welcome = lazy(() => import("../pages/Welcome"))
@@ -74,6 +74,7 @@ export default function Router() {
             <Route  path="/help" element={<Help />} />
             <Route  path="/settings" element={<Setting />} />
             <Route  path="/analytics" element={<Anlytics />} />
+
             {/* <Route path="/post" element={<Post />} /> */}
             {/* <Route
               path="/my-post"
