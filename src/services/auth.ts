@@ -26,3 +26,9 @@ export const refreshTokens = async (refreshToken: string) => {
   const res = await api.post("/auth/refresh", { token: refreshToken })
   return res.data
 }
+
+export const passwordChangeHandle = async ( currentPassword: string, newPassword: string ) => {
+  const res = await api.put("/auth/change-password", { currentPassword, newPassword})
+  return res.data
+}
+
