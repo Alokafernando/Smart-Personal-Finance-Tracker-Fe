@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -7,55 +7,28 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
+import { PlusCircle, FileText, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 
-/* -------------------- Sample Data -------------------- */
-const sampleLine = [
-  { month: "Jan", value: 1200 },
-  { month: "Feb", value: 900 },
-  { month: "Mar", value: 1400 },
-  { month: "Apr", value: 1100 },
-  { month: "May", value: 1600 },
-  { month: "Jun", value: 1250 },
-  { month: "Jul", value: 1500 },
+/* Sample Line Chart Data */
+const sampleData = [
+  { month: "Jan", balance: 800 },
+  { month: "Feb", balance: 950 },
+  { month: "Mar", balance: 700 },
+  { month: "Apr", balance: 1250 },
+  { month: "May", balance: 900 },
+  { month: "Jun", balance: 1100 },
+  { month: "Jul", balance: 1450 },
 ];
 
-const PIE_COLORS = ["#2563EB", "#60A5FA", "#93C5FD", "#1E3A8A"];
-
-type Theme = "light" | "dark";
-
-type Tx = {
-  id: number;
-  title: string;
-  category?: string;
-  date: string;
-  amount: number;
-};
-
-/* Simple suggestion logic */
-function suggestCategory(title: string) {
-  const s = title.toLowerCase();
-  if (s.includes("salary") || s.includes("payment")) return "Income";
-  if (s.includes("uber") || s.includes("taxi") || s.includes("bus")) return "Transport";
-  if (s.includes("grocery") || s.includes("shop")) return "Food";
-  if (s.includes("electric") || s.includes("bill")) return "Bills";
-  return "Other";
-}
-
-export default function UserDashboardPage(): JSX.Element {
-  const [theme] = useState<Theme>("light");
-  const [search, setSearch] = useState("");
-
-  const [transactions, setTransactions] = useState<Tx[]>([
-    { id: 1, title: "Salary Nov", date: "2025-11-25", amount: 2500 },
-    { id: 2, title: "Grocery - Fresh Mart", date: "2025-11-24", amount: -123.5 },
-    { id: 3, title: "Uber Ride", date: "2025-11-23", amount: -14.9 },
-    { id: 4, title: "Electricity Bill", date: "2025-11-21", amount: -78.25 },
-    { id: 5, title: "Freelance Payment", date: "2025-11-18", amount: 593.0 },
-  ]);
+export default function HomePage() {
+  /* Example financial data (replace with API data later) */
+  const transactions = [
+    { id: 1, title: "Salary - November", amount: 2500, type: "income" },
+    { id: 2, title: "Electricity Bill", amount: -85.3, type: "expense" },
+    { id: 3, title: "Freelance Payment", amount: 600, type: "income" },
+    { id: 4, title: "Grocery Shopping", amount: -125.8, type: "expense" },
+  ];
 
   const totals = useMemo(() => {
     const income = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
@@ -64,139 +37,114 @@ export default function UserDashboardPage(): JSX.Element {
     return { income, expense, balance };
   }, [transactions]);
 
-  const pieData = useMemo(() => {
-    const map = new Map<string, number>();
-    transactions.forEach((t) => {
-      const cat = suggestCategory(t.title);
-      const v = map.get(cat) ?? 0;
-      map.set(cat, v + Math.abs(t.amount));
-    });
-    return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-  }, [transactions]);
-
-  const displayedTx = transactions.filter((t) =>
-    t.title.toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
-    <div className="bg-gray-50 text-slate-900 p-8 w-full overflow-y-auto">
-
+    <div className="p-6 bg-gray-50 min-h-screen w-full overflow-y-auto">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Smart Personal Finance Tracker</h1>
-          <p className="text-sm text-slate-500 mt-1">Overview of your finances</p>
-        </div>
-
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search transactions..."
-          className="px-3 py-2 rounded-lg border w-64 focus:ring-2 focus:ring-blue-200"
-        />
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold text-gray-800">Welcome Back 👋</h1>
+        <p className="text-gray-500 text-sm">Here’s an overview of your finances</p>
       </header>
 
-      {/* Summary cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <article className="bg-white p-5 rounded-lg shadow-sm border">
-          <p className="text-xs text-slate-400">Total Income</p>
-          <h2 className="text-2xl font-semibold mt-1">Rs {totals.income.toFixed(2)}</h2>
-        </article>
-
-        <article className="bg-white p-5 rounded-lg shadow-sm border">
-          <p className="text-xs text-slate-400">Total Expense</p>
-          <h2 className="text-2xl font-semibold mt-1">Rs {totals.expense.toFixed(2)}</h2>
-        </article>
-
-        <article className="bg-white p-5 rounded-lg shadow-sm border">
-          <p className="text-xs text-slate-400">Balance</p>
-          <h2 className="text-2xl font-semibold mt-1">Rs {totals.balance.toFixed(2)}</h2>
-        </article>
-      </section>
-
-      {/* Charts + Transactions */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Line Chart + transactions */}
-        <div className="lg:col-span-2 space-y-6">
-
-          {/* Line chart */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="font-medium mb-2">Monthly Trend</h3>
-
-            <div className="h-56">
-              <ResponsiveContainer>
-                <LineChart data={sampleLine}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#2563EB"
-                    strokeWidth={3}
-                    animationDuration={800}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+      {/* Overview Cards */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white border rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Total Income</p>
+              <h2 className="text-2xl font-semibold text-green-600 mt-1">
+                Rs {totals.income.toFixed(2)}
+              </h2>
             </div>
-          </div>
-
-          {/* Recent transactions */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="font-medium mb-3">Recent Transactions</h3>
-
-            <div className="space-y-2 max-h-56 overflow-auto">
-              {displayedTx.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between p-2 rounded hover:bg-gray-50"
-                >
-                  <div>
-                    <div className="font-medium">{t.title}</div>
-                    <div className="text-xs text-slate-400">
-                      {t.date} • {suggestCategory(t.title)}
-                    </div>
-                  </div>
-
-                  <div
-                    className={`font-semibold ${
-                      t.amount > 0 ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {t.amount > 0
-                      ? `+ Rs ${t.amount.toFixed(2)}`
-                      : `- Rs ${Math.abs(t.amount).toFixed(2)}`}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ArrowUpCircle className="text-green-600" size={28} />
           </div>
         </div>
 
-        {/* Pie chart */}
-        <div className="space-y-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="font-medium mb-3">Category Breakdown</h3>
-
-            <div className="h-48">
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    innerRadius={40}
-                    outerRadius={70}
-                    animationDuration={800}
-                  >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+        <div className="bg-white border rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Total Expense</p>
+              <h2 className="text-2xl font-semibold text-red-600 mt-1">
+                Rs {totals.expense.toFixed(2)}
+              </h2>
             </div>
+            <ArrowDownCircle className="text-red-600" size={28} />
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-400">Balance</p>
+              <h2 className="text-2xl font-semibold text-blue-600 mt-1">
+                Rs {totals.balance.toFixed(2)}
+              </h2>
+            </div>
+            <FileText className="text-blue-600" size={28} />
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="flex flex-wrap gap-3 mb-10">
+        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+          <PlusCircle size={18} /> Add Income
+        </button>
+        <button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow">
+          <PlusCircle size={18} /> Add Expense
+        </button>
+        <button className="flex items-center gap-2 bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg shadow">
+          <FileText size={18} /> View Reports
+        </button>
+      </section>
+
+      {/* Chart + Recent Transactions */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chart */}
+        <div className="lg:col-span-2 bg-white border rounded-xl shadow-sm p-5">
+          <h3 className="font-medium mb-3 text-gray-800">Balance Trend</h3>
+          <div className="h-64">
+            <ResponsiveContainer>
+              <LineChart data={sampleData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="#2563EB"
+                  strokeWidth={3}
+                  animationDuration={800}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="bg-white border rounded-xl shadow-sm p-5">
+          <h3 className="font-medium mb-3 text-gray-800">Recent Transactions</h3>
+          <div className="space-y-3">
+            {transactions.map((t) => (
+              <div
+                key={t.id}
+                className="flex justify-between items-center py-2 border-b last:border-none"
+              >
+                <div>
+                  <p className="font-medium text-gray-700">{t.title}</p>
+                  <p className="text-xs text-gray-400">2025-11-25</p>
+                </div>
+                <p
+                  className={`font-semibold ${
+                    t.amount > 0 ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {t.amount > 0
+                    ? `+ Rs ${t.amount.toFixed(2)}`
+                    : `- Rs ${Math.abs(t.amount).toFixed(2)}`}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
