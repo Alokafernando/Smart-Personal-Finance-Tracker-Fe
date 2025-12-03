@@ -10,7 +10,7 @@ const Welcome = lazy(() => import("../pages/Welcome"))
 const Transactions = lazy(() => import("../pages/Transactions"))
 const Help = lazy(() => import("../pages/HelpPage"))
 const Setting = lazy(() => import("../pages/SettingsPage"))
-// const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
+const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
 
 
 
@@ -73,7 +73,7 @@ export default function Router() {
             <Route  path="/transactions" element={<Transactions />} />
             <Route  path="/help" element={<Help />} />
             <Route  path="/settings" element={<Setting />} />
-            {/* <Route  path="/analytics" element={<Anlytics />} /> */}
+            <Route  path="/analytics" element={<Anlytics />} />
             {/* <Route path="/post" element={<Post />} /> */}
             {/* <Route
               path="/my-post"
