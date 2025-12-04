@@ -1,10 +1,12 @@
 import React, { useEffect, useState, type ChangeEvent } from "react"
-import { User, Save, Upload, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, } from "lucide-react"
+import { User, Save, Upload, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
 import { getUserDetails } from "../services/auth"
 import { updateUserDetails } from "../services/user"
 import { useAuth } from "../context/authContext"
 import Swal from "sweetalert2"
+
+
 
 
 export default function SettingsPage() {
@@ -14,6 +16,13 @@ export default function SettingsPage() {
   const [userData, setUserData] = useState({ name: "", email: "" })
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
+
+  // show passwords
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
+
 
   // get username and email from the getUserDetails method's response
   useEffect(() => {
@@ -67,7 +76,7 @@ export default function SettingsPage() {
     }
   }
 
- // Update userData state as the user types in the input fields
+  // Update userData state as the user types in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setUserData((prev) => ({ ...prev, [name]: value }))
@@ -281,33 +290,89 @@ export default function SettingsPage() {
             </h2>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
+
+              {/* CURRENT PASSWORD */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">
                   Current Password
                 </label>
-                <input name="currentPassword" type="password" onChange={handlePasswordChange} className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm" required />
+
+                <div className="relative">
+                  <input
+                    name="currentPassword"
+                    type={showCurrentPw ? "text" : "password"}
+                    onChange={handlePasswordChange}
+                    className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPw(!showCurrentPw)}
+                    className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                  >
+                    {showCurrentPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
+              {/* NEW PASSWORD */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">
                   New Password
                 </label>
-                <input name="newPassword" type="password" onChange={handlePasswordChange} className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm" />
+
+                <div className="relative">
+                  <input
+                    name="newPassword"
+                    type={showNewPw ? "text" : "password"} 
+                    onChange={handlePasswordChange}
+                    className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPw(!showNewPw)}  
+                    className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                  >
+                    {showNewPw ? <EyeOff size={20} /> : <Eye size={20} />} 
+                  </button>
+                </div>
 
                 <p className="text-xs text-gray-400 mt-1 ml-1">
                   Leave blank if you don't want to change it.
                 </p>
-
               </div>
 
+              {/* CONFIRM PASSWORD */}
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">
                   Confirm Password
                 </label>
-                <input name="confirmPassword" type="password" onChange={handlePasswordChange} className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm" required />
+
+                <div className="relative">
+                  <input
+                    name="confirmPassword"
+                    type={showConfirmPw ? "text" : "password"}  
+                    onChange={handlePasswordChange}
+                    className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}  
+                    className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPw ? <EyeOff size={20} /> : <Eye size={20} />}  
+                  </button>
+                </div>
               </div>
 
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md transition active:scale-95 mt-4">
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md transition active:scale-95 mt-4"
+              >
                 Change Password
               </button>
             </form>
