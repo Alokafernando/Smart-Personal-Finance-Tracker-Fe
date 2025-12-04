@@ -1,8 +1,8 @@
 import React, { useEffect, useState, type ChangeEvent } from "react"
-import { User, Save, Upload, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff } from "lucide-react"
+import { User, Save, Camera, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
 import { getUserDetails, passwordChangeHandle } from "../services/auth"
-import { updateUserDetails } from "../services/user"
+import { updateProfileImage, updateUserDetails } from "../services/user"
 import { useAuth } from "../context/authContext"
 import Swal from "sweetalert2"
 
@@ -19,6 +19,9 @@ export default function SettingsPage() {
   const [showNewPw, setShowNewPw] = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
 
+  //profile modal
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [newProfilePic, setNewProfilePic] = useState<string | null>(null)
 
   // password regex
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
@@ -26,20 +29,22 @@ export default function SettingsPage() {
 
   // get username and email from the getUserDetails method's response
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await getUserDetails()
-        setUserData({
-          name: res.data.username,
-          email: res.data.email,
-        })
-      } catch (err) {
-        console.error("Failed to fetch user details:", err)
-      }
+  const fetchUser = async () => {
+    try {
+      const res = await getUserDetails()
+      setUserData({
+        name: res.data.username,
+        email: res.data.email,
+      })
+      setProfilePic(res.data.profileURL || defaultUser) // <-- correct key
+    } catch (err) {
+      console.error("Failed to fetch user details:", err)
     }
+  }
 
-    fetchUser()
-  }, [])
+  fetchUser()
+}, [])
+
 
   //update username
   const updateDetails = async (e: React.FormEvent) => {
@@ -144,25 +149,53 @@ export default function SettingsPage() {
     setPasswordData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleProfilePic = (e: ChangeEvent<HTMLInputElement>) => {
+
+  //==========================profile modal==========================
+  const openProfileModal = () => {
+    setNewProfilePic(profilePic)
+    setIsProfileModalOpen(true)
+  }
+
+  const handleProfileModalFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (ev) => setProfilePic(ev.target?.result as string)
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (ev) => setNewProfilePic(ev.target?.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  const saveProfileImage = async () => {
+    const fileInput = document.getElementById("profile-upload-modal") as HTMLInputElement
+    const file = fileInput?.files?.[0]
+    if (!file) return
+
+    try {
+      const res = await updateProfileImage(file)
+
+      const newImageUrl = res.data.imageUrl
+      setProfilePic(newImageUrl)
+      setIsProfileModalOpen(false)
+
+      Swal.fire({
+        icon: "success",
+        title: "Profile Updated",
+        text: "Your profile image has been uploaded!",
+        confirmButtonColor: "#2563eb",
+      })
+
+    } catch (err: any) {
+
+      console.error(err)
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: err.response?.data?.message || "Failed to upload profile image. Try again.",
+        confirmButtonColor: "#dc2626",
+      })
     }
   }
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   alert("Profile updated successfully!")
-  // }
-
-  // const handlePasswordSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   alert("Password changed successfully!")
-  //   setIsPasswordModalOpen(false)
-  // }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-blue-50 to-gray-100 p-8">
@@ -188,11 +221,18 @@ export default function SettingsPage() {
             {/* Profile Pic */}
             <div className="flex items-center gap-6">
               <div className="relative">
-                <img src={profilePic} alt="Profile" className="w-28 h-28 rounded-full object-cover border shadow-md" />
+                <img
+                  src={profilePic}
+                  alt="Profile"
+                  className="w-28 h-28 rounded-full object-cover border shadow-md"
+                />
 
-                <label htmlFor="profile-upload" className="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 shadow-lg transition" >
-                  <Upload size={16} />
-                  <input id="profile-upload" type="file" accept="image/*" className="hidden" onChange={handleProfilePic} />
+                <label
+                  htmlFor="profile-upload"
+                  onClick={openProfileModal}
+                  className="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 shadow-lg transition"
+                >
+                  <Camera size={16} />
                 </label>
               </div>
 
@@ -200,7 +240,6 @@ export default function SettingsPage() {
                 <h5 className="text-4xl font-bold text-gray-700">
                   {userData.name}
                 </h5>
-                {/* <p className="text-gray-600 text-sm">{userData.email}</p> */}
               </div>
             </div>
 
@@ -433,6 +472,50 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl relative">
+            <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+              <X size={20} />
+            </button>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+              <Camera size={22} className="text-blue-600" /> Update Profile Picture
+            </h2>
+
+            {newProfilePic && (
+              <div className="flex justify-center mb-6">
+                <img src={newProfilePic} alt="Preview" className="w-32 h-32 rounded-full object-cover border shadow-md" />
+              </div>
+            )}
+
+            <input
+              id="profile-upload-modal"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleProfileModalFileChange}
+            />
+
+            <label
+              htmlFor="profile-upload-modal"
+              className="w-full bg-gray-100 text-gray-700 px-4 py-3 rounded-xl text-center cursor-pointer hover:bg-gray-200 transition"
+            >
+              Choose New Image
+            </label>
+
+            <button onClick={saveProfileImage} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md transition active:scale-95 mt-4">
+              Save
+            </button>
+
+            <button onClick={() => setIsProfileModalOpen(false)} className="w-full bg-gray-300 text-gray-600 py-3 rounded-xl shadow-md hover:bg-gray-400 transition mt-2">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
