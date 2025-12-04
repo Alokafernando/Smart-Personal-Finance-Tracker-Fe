@@ -1,13 +1,10 @@
 import React, { useEffect, useState, type ChangeEvent } from "react"
 import { User, Save, Upload, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
-import { getUserDetails } from "../services/auth"
+import { getUserDetails, passwordChangeHandle } from "../services/auth"
 import { updateUserDetails } from "../services/user"
 import { useAuth } from "../context/authContext"
 import Swal from "sweetalert2"
-
-
-
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -18,10 +15,13 @@ export default function SettingsPage() {
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" })
 
   // show passwords
-  const [showCurrentPw, setShowCurrentPw] = useState(false);
-  const [showNewPw, setShowNewPw] = useState(false);
-  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false)
+  const [showNewPw, setShowNewPw] = useState(false)
+  const [showConfirmPw, setShowConfirmPw] = useState(false)
 
+
+  // password regex
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
 
 
   // get username and email from the getUserDetails method's response
@@ -32,17 +32,17 @@ export default function SettingsPage() {
         setUserData({
           name: res.data.username,
           email: res.data.email,
-        });
+        })
       } catch (err) {
         console.error("Failed to fetch user details:", err)
       }
     }
 
-    fetchUser();
-  }, []);
+    fetchUser()
+  }, [])
 
   //update username
-  const handleSubmit = async (e: React.FormEvent) => {
+  const updateDetails = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!user?.userId) {
@@ -55,23 +55,23 @@ export default function SettingsPage() {
         username: userData.name,
         role: user.role,
         password: undefined
-      };
+      }
 
-      const res = await updateUserDetails(user.userId, payload);
+      const res = await updateUserDetails(user.userId, payload)
       Swal.fire({
         icon: "success",
         title: "Profile Updated",
         text: "Your profile has been updated successfully!",
         confirmButtonColor: "#2563eb",
-      });
+      })
     } catch (err: any) {
-      console.error("Failed to update user: ", err.response?.data || err);
+      console.error("Failed to update user: ", err.response?.data || err)
       Swal.fire({
         icon: "error",
         title: "Update Failed",
         text: "Failed to update your profile. Please try again.",
         confirmButtonColor: "#dc2626",
-      });
+      })
 
     }
   }
@@ -82,8 +82,62 @@ export default function SettingsPage() {
     setUserData((prev) => ({ ...prev, [name]: value }))
   }
 
+  //change password
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Missing Fields",
+        text: "Please fill all password fields",
+        confirmButtonColor: "#dc2626"
+      })
+      return
+    }
 
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Passwords do not match",
+        text: "New password and confirm password must match",
+        confirmButtonColor: "#dc2626"
+      })
+      return
+    }
+
+    if (!passwordRegex.test(passwordData.newPassword)) {
+      Swal.fire({
+        icon: "error",
+        title: "Weak Password",
+        text: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
+        confirmButtonColor: "#dc2626"
+      })
+      return
+    }
+
+    try {
+
+      const res = await passwordChangeHandle(passwordData.currentPassword, passwordData.newPassword)
+      Swal.fire({
+        icon: "success",
+        title: "Password Changed",
+        text: res.message || "Your password has been updated successfully!",
+        confirmButtonColor: "#2563eb"
+      })
+
+      setIsPasswordModalOpen(false)
+
+    } catch (err: any) {
+      console.error(err)
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Change Password",
+        text: err.response?.data?.message || "Something went wrong. Try again.",
+        confirmButtonColor: "#dc2626"
+      })
+    }
+  }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -104,11 +158,11 @@ export default function SettingsPage() {
   //   alert("Profile updated successfully!")
   // }
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert("Password changed successfully!")
-    setIsPasswordModalOpen(false)
-  }
+  // const handlePasswordSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   alert("Password changed successfully!")
+  //   setIsPasswordModalOpen(false)
+  // }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-blue-50 to-gray-100 p-8">
@@ -130,7 +184,7 @@ export default function SettingsPage() {
             Profile Information
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={updateDetails} className="space-y-6">
             {/* Profile Pic */}
             <div className="flex items-center gap-6">
               <div className="relative">
@@ -143,10 +197,10 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <p className="text-lg font-semibold text-gray-900">
+                <h5 className="text-4xl font-bold text-gray-700">
                   {userData.name}
-                </p>
-                <p className="text-gray-600 text-sm">{userData.email}</p>
+                </h5>
+                {/* <p className="text-gray-600 text-sm">{userData.email}</p> */}
               </div>
             </div>
 
@@ -187,7 +241,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex items-center gap-3 pt-4">
-              <button type="submit" onClick={handleSubmit} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition active:scale-95" >
+              <button type="submit" onClick={updateDetails} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition active:scale-95" >
                 <Save size={18} />
                 Save Changes
               </button>
@@ -325,17 +379,17 @@ export default function SettingsPage() {
                 <div className="relative">
                   <input
                     name="newPassword"
-                    type={showNewPw ? "text" : "password"} 
+                    type={showNewPw ? "text" : "password"}
                     onChange={handlePasswordChange}
                     className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm"
                   />
 
                   <button
                     type="button"
-                    onClick={() => setShowNewPw(!showNewPw)}  
+                    onClick={() => setShowNewPw(!showNewPw)}
                     className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
                   >
-                    {showNewPw ? <EyeOff size={20} /> : <Eye size={20} />} 
+                    {showNewPw ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
 
@@ -353,7 +407,7 @@ export default function SettingsPage() {
                 <div className="relative">
                   <input
                     name="confirmPassword"
-                    type={showConfirmPw ? "text" : "password"}  
+                    type={showConfirmPw ? "text" : "password"}
                     onChange={handlePasswordChange}
                     className="w-full border rounded-xl px-4 py-3 bg-gray-50 outline-none shadow-sm"
                     required
@@ -361,10 +415,10 @@ export default function SettingsPage() {
 
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPw(!showConfirmPw)}  
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}
                     className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
                   >
-                    {showConfirmPw ? <EyeOff size={20} /> : <Eye size={20} />}  
+                    {showConfirmPw ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
               </div>
