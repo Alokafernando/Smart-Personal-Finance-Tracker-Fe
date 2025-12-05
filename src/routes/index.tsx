@@ -12,6 +12,8 @@ const Help = lazy(() => import("../pages/HelpPage"))
 const Setting = lazy(() => import("../pages/SettingsPage"))
 const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
 const Wallet = lazy(() => import("../pages/Wallet"))
+const Categories = lazy(() => import("../pages/Categories"))
+
 
 
 
@@ -77,6 +79,8 @@ export default function Router() {
             <Route path="/settings" element={<Setting />} />
             <Route path="/analytics" element={<Anlytics />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/categories" element={<Categories />} />
+
 
 
             {/* <Route path="/post" element={<Post />} /> */}

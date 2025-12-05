@@ -31,10 +31,10 @@ export default function Sidebar() {
 
   const menuItems = [
     { label: "Home", icon: <Home size={18} />, route: "/home" },
-    { label: "Wallet", icon: <Wallet size={18} />, route: "/wallet" },
     { label: "Transactions", icon: <Layers size={18} />, route: "/transactions" },
+    { label: "Budget", icon: <Wallet size={18} />, route: "/wallet" },
+    { label: "Categories", icon: <Search size={18} />, route: "/Categories" },
     { label: "Revenue Analytics", icon: <BarChart3 size={18} />, route: "/analytics" },
-    { label: "Search", icon: <Search size={18} />, route: "/search" },
   ]
 
   return (
