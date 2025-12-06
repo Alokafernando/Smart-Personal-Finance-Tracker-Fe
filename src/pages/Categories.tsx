@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Layers, X } from "lucide-react"
 import api from "../services/api"
-import { getAllCategories } from "../services/category"
+import { addCategories, getAllCategories } from "../services/category"
 import type { Category } from "../services/category"
+import Swal from "sweetalert2"
+
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Fields for new category
   const [newName, setNewName] = useState("")
   const [newType, setNewType] = useState<"INCOME" | "EXPENSE">("INCOME")
   const [newIcon, setNewIcon] = useState("")
@@ -28,27 +29,69 @@ export default function CategoriesPage() {
 
   // Add category
   const addCategory = async () => {
-    if (!newName.trim()) return alert("Enter category name")
-    if (!newIcon.trim()) return alert("Enter an icon")
+
+    if (!newName.trim()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Category name required",
+        text: "Please enter a category name.",
+      })
+    }
+
+    if (!newIcon.trim()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Icon required",
+        text: "Please choose an icon.",
+      })
+    }
+
+    // duplicate check
+    const exists = categories.some(
+      (c) => c.name.trim().toLowerCase() === newName.trim().toLowerCase()
+    )
+
+    if (exists) {
+      return Swal.fire({
+        icon: "error",
+        title: "Duplicate Category",
+        text: `"${newName}" already exists! Try another name.`,
+      })
+    }
 
     try {
-      const res = await api.post("/categories", {
+      const obj: any = {
         name: newName.trim(),
         type: newType,
         icon: newIcon,
-        color: "#4D96FF",
+      }
+
+      const res = await addCategories(obj)
+      console.log(res.message)
+
+      await loadCategories();
+
+      await Swal.fire({
+        icon: "success",
+        title: "Category Added",
+        text: `${newName} created successfully!`,
+        confirmButtonColor: "#3085d6",
       })
 
-      setCategories([...categories, res.data.data])
-      // Reset fields
       setNewName("")
       setNewType("INCOME")
       setNewIcon("")
       setIsModalOpen(false)
+
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to add category")
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Add",
+        text: err?.response?.data?.message || "Something went wrong!",
+      })
     }
   }
+
 
   // Delete category
   const deleteCategory = async (id: string, isDefault: boolean) => {
@@ -100,11 +143,10 @@ export default function CategoriesPage() {
                 </td>
                 <td className="p-4">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      c.type === "INCOME"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${c.type === "INCOME"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                      }`}
                   >
                     {c.type === "INCOME" ? "Income" : "Expense"}
                   </span>

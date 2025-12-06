@@ -13,3 +13,8 @@ export const getAllCategories = async () => {
   const res = await api.get("/category/")
   return res.data
 }
+
+export const addCategories = async (data: Category) => {
+  const res = await api.post("/category/", data)
+  return res.data
+}
