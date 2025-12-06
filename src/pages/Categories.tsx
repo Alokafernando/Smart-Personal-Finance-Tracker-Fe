@@ -69,7 +69,7 @@ export default function CategoriesPage() {
       const res = await addCategories(obj)
       console.log(res.message)
 
-      await loadCategories();
+      await loadCategories()
 
       await Swal.fire({
         icon: "success",
@@ -92,19 +92,49 @@ export default function CategoriesPage() {
     }
   }
 
+  const deleteCategory = async (categoryId: string, isDefault: boolean) => {
 
-  // Delete category
-  const deleteCategory = async (id: string, isDefault: boolean) => {
-    if (isDefault) return alert("Cannot delete default categories")
-    if (!confirm("Are you sure?")) return
+    if (isDefault) {
+      return Swal.fire({
+        icon: "error",
+        title: "Cannot Delete",
+        text: "Default categories cannot be deleted.",
+      })
+    }
+
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Are you sure?",
+      text: `Do you want to delete this category ?`,
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+    })
+
+    if (!result.isConfirmed) return
 
     try {
-      await api.delete(`/categories/${id}`)
-      setCategories(categories.filter((c) => c._id !== id))
-    } catch (err) {
-      alert("Delete failed")
+      const res = await api.delete(`/category/${categoryId}`)
+      console.log(res.data.message);
+
+      await loadCategories()
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted",
+        text: "Category deleted successfully.",
+        confirmButtonColor: "#3085d6",
+      })
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Delete Failed",
+        text: err?.response?.data?.message || "Something went wrong!",
+      })
     }
   }
+
 
   return (
     <div className="w-full min-h-screen bg-gray-100 p-6">

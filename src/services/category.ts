@@ -18,3 +18,8 @@ export const addCategories = async (data: Category) => {
   const res = await api.post("/category/", data)
   return res.data
 }
+
+export const deleteCategory = async (categoryId: string) => {
+  const res = await api.delete(`/category/${categoryId}`)
+  return res.data
+}
