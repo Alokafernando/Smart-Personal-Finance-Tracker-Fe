@@ -14,6 +14,13 @@ export default function CategoriesPage() {
   const [newType, setNewType] = useState<"INCOME" | "EXPENSE">("INCOME")
   const [newIcon, setNewIcon] = useState("")
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editId, setEditId] = useState("")
+  const [editName, setEditName] = useState("")
+  const [editType, setEditType] = useState<"INCOME" | "EXPENSE">("INCOME")
+  const [editIcon, setEditIcon] = useState("")
+
+
   const loadCategories = async () => {
     try {
       const data = await getAllCategories()
@@ -21,6 +28,14 @@ export default function CategoriesPage() {
     } catch (err: any) {
       console.error(err)
     }
+  }
+
+  const openEditModal = (cat: Category) => {
+    setEditId(cat._id)
+    setEditName(cat.name)
+    setEditType(cat.type)
+    setEditIcon(cat.icon)
+    setIsEditModalOpen(true)
   }
 
   useEffect(() => {
@@ -87,6 +102,51 @@ export default function CategoriesPage() {
       Swal.fire({
         icon: "error",
         title: "Failed to Add",
+        text: err?.response?.data?.message || "Something went wrong!",
+      })
+    }
+  }
+
+  const updateCategory = async () => {
+    if (!editName.trim()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Name required",
+        text: "Category name cannot be empty.",
+      })
+    }
+
+    if (!editIcon.trim()) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Icon required",
+        text: "Please choose an icon.",
+      })
+    }
+
+    try {
+      const body = {
+        name: editName.trim(),
+        type: editType,
+        icon: editIcon,
+      }
+
+      const res = await api.put(`/category/${editId}`, body)
+      console.log(res.data.message)
+
+      await loadCategories()
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated",
+        text: "Category updated successfully!",
+      })
+
+      setIsEditModalOpen(false)
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
         text: err?.response?.data?.message || "Something went wrong!",
       })
     }
@@ -184,7 +244,10 @@ export default function CategoriesPage() {
                 <td className="p-4 text-right flex justify-end gap-3">
                   {!c.is_default && (
                     <>
-                      <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition flex items-center gap-1 text-sm font-medium">
+                      <button
+                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition flex items-center gap-1 text-sm font-medium"
+                        onClick={() => openEditModal(c)}
+                      >
                         <Pencil size={16} /> Edit
                       </button>
 
@@ -277,6 +340,71 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 relative">
+
+            <button
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <X size={24} />
+            </button>
+
+            <h2 className="text-2xl font-bold mb-4">Edit Category</h2>
+
+            <label className="block mb-3">
+              <span className="text-gray-700 font-medium">Name</span>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </label>
+
+            <label className="block mb-3">
+              <span className="text-gray-700 font-medium">Type</span>
+              <select
+                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                value={editType}
+                onChange={(e) => setEditType(e.target.value as "INCOME" | "EXPENSE")}
+              >
+                <option value="INCOME">Income</option>
+                <option value="EXPENSE">Expense</option>
+              </select>
+            </label>
+
+            <label className="block mb-6">
+              <span className="text-gray-700 font-medium">Icon</span>
+              <input
+                type="text"
+                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+                value={editIcon}
+                onChange={(e) => setEditIcon(e.target.value)}
+              />
+            </label>
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={updateCategory}
+              >
+                Update
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -19,6 +19,11 @@ export const addCategories = async (data: Category) => {
   return res.data
 }
 
+export const updateCategory = async (categoryId: string) => {
+  const res = await api.put(`/category/${categoryId}`)
+  return res.data
+}
+
 export const deleteCategory = async (categoryId: string) => {
   const res = await api.delete(`/category/${categoryId}`)
   return res.data
