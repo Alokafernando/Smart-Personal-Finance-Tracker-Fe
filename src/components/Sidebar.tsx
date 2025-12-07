@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Home, Wallet, Layers, BarChart3, Search, Settings, HelpCircle, LogOut } from "lucide-react"
+import { Home, ChartPie, Layers, BarChart3, Tag, Settings, HelpCircle, LogOut } from "lucide-react"
 import { useAuth } from "../context/authContext"
 import Swal from "sweetalert2"
 
@@ -32,8 +32,9 @@ export default function Sidebar() {
   const menuItems = [
     { label: "Home", icon: <Home size={18} />, route: "/home" },
     { label: "Transactions", icon: <Layers size={18} />, route: "/transactions" },
-    { label: "Budget", icon: <Wallet size={18} />, route: "/wallet" },
-    { label: "Categories", icon: <Search size={18} />, route: "/Categories" },
+    { label: "Budget", icon: <ChartPie size={18} />, route: "/budget" },
+    { label: "Categories", icon: <Tag size={18} />, route: "/categories" },
+
     { label: "Revenue Analytics", icon: <BarChart3 size={18} />, route: "/analytics" },
   ]
 

@@ -11,13 +11,8 @@ const Transactions = lazy(() => import("../pages/Transactions"))
 const Help = lazy(() => import("../pages/HelpPage"))
 const Setting = lazy(() => import("../pages/SettingsPage"))
 const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
-const Wallet = lazy(() => import("../pages/Wallet"))
+const Budget = lazy(() => import("../pages/Budget"))
 const Categories = lazy(() => import("../pages/Categories"))
-
-
-
-
-
 
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
@@ -78,7 +73,7 @@ export default function Router() {
             <Route path="/help" element={<Help />} />
             <Route path="/settings" element={<Setting />} />
             <Route path="/analytics" element={<Anlytics />} />
-            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/budget" element={<Budget />} />
             <Route path="/categories" element={<Categories />} />
 
 
