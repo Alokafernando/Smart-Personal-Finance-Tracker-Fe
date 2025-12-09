@@ -19,8 +19,8 @@ export const addCategories = async (data: Category) => {
   return res.data
 }
 
-export const updateCategory = async (categoryId: string) => {
-  const res = await api.put(`/category/${categoryId}`)
+export const updateCategory = async (categoryId: string, body: any) => {
+  const res = await api.put(`/category/${categoryId}`, body)
   return res.data
 }
 

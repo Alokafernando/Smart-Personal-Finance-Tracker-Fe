@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Layers, X } from "lucide-react"
 import api from "../services/api"
-import { addCategories, getAllCategories } from "../services/category"
+import { addCategories, getAllCategories, updateCategory } from "../services/category"
 import type { Category } from "../services/category"
 import Swal from "sweetalert2"
+import { updateBudget } from "../services/budget"
 
 
 export default function CategoriesPage() {
@@ -107,7 +108,7 @@ export default function CategoriesPage() {
     }
   }
 
-  const updateCategory = async () => {
+  const updateCategories = async () => {
     if (!editName.trim()) {
       return Swal.fire({
         icon: "warning",
@@ -131,8 +132,8 @@ export default function CategoriesPage() {
         icon: editIcon,
       }
 
-      const res = await api.put(`/category/${editId}`, body)
-      console.log(res.data.message)
+      const res = await updateCategory(editId, body);
+       console.log(res.message)
 
       await loadCategories()
 
@@ -144,11 +145,7 @@ export default function CategoriesPage() {
 
       setIsEditModalOpen(false)
     } catch (err: any) {
-      Swal.fire({
-        icon: "error",
-        title: "Update Failed",
-        text: err?.response?.data?.message || "Something went wrong!",
-      })
+      console.error(err)
     }
   }
 
@@ -194,7 +191,6 @@ export default function CategoriesPage() {
       })
     }
   }
-
 
   return (
     <div className="w-full min-h-screen bg-gray-100 p-6">
@@ -395,7 +391,7 @@ export default function CategoriesPage() {
               </button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={updateCategory}
+                onClick={updateCategories}
               >
                 Update
               </button>

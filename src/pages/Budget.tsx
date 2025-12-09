@@ -4,8 +4,8 @@ import { Plus, Pencil, Trash2, PieChart } from "lucide-react";
 type Budget = {
   id: number;
   category: string;
-  amount: number; // budgeted amount
-  spent: number; // current spending
+  amount: number;
+  spent: number;
 };
 
 const initialBudgets: Budget[] = [
@@ -20,20 +20,38 @@ export default function BudgetPage() {
   const [newCategory, setNewCategory] = useState("");
   const [newAmount, setNewAmount] = useState<number>(0);
 
+  // Edit Modal
+  const [editBudget, setEditBudget] = useState<Budget | null>(null);
+
+  /* ADD */
   const addBudget = () => {
     if (!newCategory || newAmount <= 0) return;
+
     setBudgets([
       ...budgets,
       { id: Date.now(), category: newCategory, amount: newAmount, spent: 0 },
     ]);
+
     setNewCategory("");
     setNewAmount(0);
   };
 
+  /* DELETE */
   const deleteBudget = (id: number) => {
     if (confirm("Are you sure you want to delete this budget?")) {
       setBudgets(budgets.filter((b) => b.id !== id));
     }
+  };
+
+  /* UPDATE */
+  const updateBudget = () => {
+    if (!editBudget) return;
+
+    setBudgets(
+      budgets.map((b) => (b.id === editBudget.id ? editBudget : b))
+    );
+
+    setEditBudget(null);
   };
 
   return (
@@ -44,6 +62,7 @@ export default function BudgetPage() {
           <PieChart className="w-8 h-8 text-blue-600" />
           Budgets
         </h1>
+
         <div className="flex gap-2">
           <input
             type="text"
@@ -52,6 +71,7 @@ export default function BudgetPage() {
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
           />
+
           <input
             type="number"
             placeholder="Amount"
@@ -59,6 +79,7 @@ export default function BudgetPage() {
             value={newAmount}
             onChange={(e) => setNewAmount(Number(e.target.value))}
           />
+
           <button
             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
             onClick={addBudget}
@@ -68,7 +89,7 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      {/* Budget Table */}
+      {/* Table */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-100 text-gray-600">
@@ -83,11 +104,13 @@ export default function BudgetPage() {
           <tbody>
             {budgets.map((b) => {
               const percent = Math.min((b.spent / b.amount) * 100, 100);
+
               return (
                 <tr key={b.id} className="border-t hover:bg-gray-50 transition">
                   <td className="p-4">{b.category}</td>
                   <td className="p-4 font-semibold">Rs {b.amount}</td>
                   <td className="p-4 font-semibold">{b.spent}</td>
+
                   <td className="p-4">
                     <div className="w-full bg-gray-200 h-4 rounded-full overflow-hidden">
                       <div
@@ -105,10 +128,15 @@ export default function BudgetPage() {
                       {percent.toFixed(0)}%
                     </span>
                   </td>
+
                   <td className="p-4 text-right flex justify-end gap-2">
-                    <button className="text-blue-600 hover:text-blue-800 transition">
+                    <button
+                      className="text-blue-600 hover:text-blue-800 transition"
+                      onClick={() => setEditBudget(b)}
+                    >
                       <Pencil size={16} />
                     </button>
+
                     <button
                       className="text-red-600 hover:text-red-800 transition"
                       onClick={() => deleteBudget(b.id)}
@@ -119,6 +147,7 @@ export default function BudgetPage() {
                 </tr>
               );
             })}
+
             {budgets.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-4 text-center text-gray-500">
@@ -129,6 +158,54 @@ export default function BudgetPage() {
           </tbody>
         </table>
       </div>
+
+      {/* EDIT MODAL */}
+      {editBudget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-2xl w-96 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Edit Budget</h2>
+
+            <label className="block mb-2">Category</label>
+            <input
+              type="text"
+              className="w-full mb-4 px-3 py-2 border rounded-lg"
+              value={editBudget.category}
+              onChange={(e) =>
+                setEditBudget({ ...editBudget, category: e.target.value })
+              }
+            />
+
+            <label className="block mb-2">Amount</label>
+            <input
+              type="number"
+              className="w-full mb-4 px-3 py-2 border rounded-lg"
+              value={editBudget.amount}
+              onChange={(e) =>
+                setEditBudget({
+                  ...editBudget,
+                  amount: Number(e.target.value),
+                })
+              }
+            />
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200"
+                onClick={() => setEditBudget(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white"
+                onClick={updateBudget}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
