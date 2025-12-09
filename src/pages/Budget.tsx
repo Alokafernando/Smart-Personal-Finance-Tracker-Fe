@@ -113,8 +113,42 @@ export default function BudgetPage() {
     }
   }
 
+  const updateBudget = async () => {
+    if (!editBudget || !editBudget._id) return
 
-  
+    try {
+      const updated = await updateBudgetApi(editBudget._id, editBudget)
+
+      setBudgets(budgets.map((b) => (b._id === updated._id ? updated : b)))
+      setEditBudget(null)
+
+      await loadAllBudgets()
+
+      Swal.fire({
+        icon: "success",
+        title: "Budget updated",
+        text: "Budget has been updated successfully.",
+      })
+    } catch (err: any) {
+      console.error("Failed to add budget", err)
+
+      if (err.response && err.response.data?.message) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to add budget",
+          text: "Budget already exists for this category"
+        })
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Failed to add budget",
+          text: "Something went wrong. Please try again.",
+        })
+      }
+    }
+  }
+
+
   const getCategoryName = (category: string | any) => {
     if (!category) return "Unknown"
     if (typeof category === "object" && category.name) return category.name
@@ -151,7 +185,6 @@ export default function BudgetPage() {
                 <th className="p-4 text-left">Budgeted</th>
                 <th className="p-4 text-left">Spent</th>
                 <th className="p-4 text-left">Progress</th>
-                <th className="p-4 text-left">Month</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -188,7 +221,6 @@ export default function BudgetPage() {
                           {percent.toFixed(0)}%
                         </span>
                       </td>
-                      <td className="p-4">{b.month}</td>
                       <td className="p-4 text-right flex justify-end gap-2">
                         <button
                           className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition relative group"
@@ -269,14 +301,14 @@ export default function BudgetPage() {
             <label className="block mb-2">Category</label>
             <select
               className="w-full mb-4 px-3 py-2 border rounded-lg"
-              value={editBudget.category_id}
+              value={editBudget.category_id?.toString() || ""}
               onChange={(e) =>
                 setEditBudget({ ...editBudget, category_id: e.target.value })
               }
             >
               <option value="">Select Category</option>
               {categories.map((c) => (
-                <option key={c._id} value={c._id}>
+                <option key={c._id} value={c._id.toString()}>
                   {c.name}
                 </option>
               ))}
