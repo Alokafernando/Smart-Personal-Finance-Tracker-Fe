@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Layers, X } from "lucide-react"
 import api from "../services/api"
-import { addCategories, getAllCategories, updateCategory } from "../services/category"
+import { addCategories, getAllCategories, updateCategory, deleteCategory } from "../services/category"
 import type { Category } from "../services/category"
 import Swal from "sweetalert2"
-import { updateBudget } from "../services/budget"
 
 
 export default function CategoriesPage() {
@@ -149,7 +148,7 @@ export default function CategoriesPage() {
     }
   }
 
-  const deleteCategory = async (categoryId: string, isDefault: boolean) => {
+  const deleteCategories = async (categoryId: string, isDefault: boolean) => {
 
     if (isDefault) {
       return Swal.fire({
@@ -172,8 +171,8 @@ export default function CategoriesPage() {
     if (!result.isConfirmed) return
 
     try {
-      const res = await api.delete(`/category/${categoryId}`)
-      console.log(res.data.message);
+      const res = await deleteCategory(categoryId)
+      console.log(res.message);
 
       await loadCategories()
 
@@ -249,7 +248,7 @@ export default function CategoriesPage() {
 
                       <button
                         className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition flex items-center gap-1 text-sm font-medium"
-                        onClick={() => deleteCategory(c._id, c.is_default)}
+                        onClick={() => deleteCategories(c._id, c.is_default)}
                       >
                         <Trash2 size={16} /> Delete
                       </button>
