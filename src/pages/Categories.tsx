@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Layers, X } from "lucide-react"
-import api from "../services/api"
 import { addCategories, getAllCategories, updateCategory, deleteCategory } from "../services/category"
 import type { Category } from "../services/category"
 import Swal from "sweetalert2"

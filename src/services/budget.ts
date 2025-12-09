@@ -4,7 +4,8 @@ export type Budget = {
   _id?: string
   category_id: string
   amount: number
-  month: string  
+  month: string
+  year: number  
   user_id?: string
 }
 
