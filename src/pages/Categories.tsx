@@ -1,13 +1,16 @@
+"use client"
+
 import { useEffect, useState } from "react"
-import { Plus, Pencil, Trash2, Layers, X } from "lucide-react"
+import { Plus, Pencil, Trash2, Layers, X, Tag, TrendingUp, TrendingDown, Grid3X3, Search } from "lucide-react"
 import { addCategories, getAllCategories, updateCategory, deleteCategory } from "../services/category"
 import type { Category } from "../services/category"
 import Swal from "sweetalert2"
 
-
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterType, setFilterType] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL")
 
   const [newName, setNewName] = useState("")
   const [newType, setNewType] = useState<"INCOME" | "EXPENSE">("INCOME")
@@ -18,7 +21,6 @@ export default function CategoriesPage() {
   const [editName, setEditName] = useState("")
   const [editType, setEditType] = useState<"INCOME" | "EXPENSE">("INCOME")
   const [editIcon, setEditIcon] = useState("")
-
 
   const loadCategories = async () => {
     try {
@@ -41,9 +43,7 @@ export default function CategoriesPage() {
     loadCategories()
   }, [])
 
-  // Add category
   const addCategory = async () => {
-
     if (!newName.trim()) {
       return Swal.fire({
         icon: "warning",
@@ -60,10 +60,7 @@ export default function CategoriesPage() {
       })
     }
 
-    // duplicate check
-    const exists = categories.some(
-      (c) => c.name.trim().toLowerCase() === newName.trim().toLowerCase()
-    )
+    const exists = categories.some((c) => c.name.trim().toLowerCase() === newName.trim().toLowerCase())
 
     if (exists) {
       return Swal.fire({
@@ -89,14 +86,13 @@ export default function CategoriesPage() {
         icon: "success",
         title: "Category Added",
         text: `${newName} created successfully!`,
-        confirmButtonColor: "#3085d6",
+        confirmButtonColor: "#f59e0b",
       })
 
       setNewName("")
       setNewType("INCOME")
       setNewIcon("")
       setIsModalOpen(false)
-
     } catch (err: any) {
       Swal.fire({
         icon: "error",
@@ -130,8 +126,8 @@ export default function CategoriesPage() {
         icon: editIcon,
       }
 
-      const res = await updateCategory(editId, body);
-       console.log(res.message)
+      const res = await updateCategory(editId, body)
+      console.log(res.message)
 
       await loadCategories()
 
@@ -139,6 +135,7 @@ export default function CategoriesPage() {
         icon: "success",
         title: "Updated",
         text: "Category updated successfully!",
+        confirmButtonColor: "#f59e0b",
       })
 
       setIsEditModalOpen(false)
@@ -148,7 +145,6 @@ export default function CategoriesPage() {
   }
 
   const deleteCategories = async (categoryId: string, isDefault: boolean) => {
-
     if (isDefault) {
       return Swal.fire({
         icon: "error",
@@ -160,18 +156,18 @@ export default function CategoriesPage() {
     const result = await Swal.fire({
       icon: "warning",
       title: "Are you sure?",
-      text: `Do you want to delete this category ?`,
+      text: `Do you want to delete this category?`,
       showCancelButton: true,
       confirmButtonText: "Yes, delete it",
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#d33",
+      confirmButtonColor: "#ef4444",
     })
 
     if (!result.isConfirmed) return
 
     try {
       const res = await deleteCategory(categoryId)
-      console.log(res.message);
+      console.log(res.message)
 
       await loadCategories()
 
@@ -179,7 +175,7 @@ export default function CategoriesPage() {
         icon: "success",
         title: "Deleted",
         text: "Category deleted successfully.",
-        confirmButtonColor: "#3085d6",
+        confirmButtonColor: "#f59e0b",
       })
     } catch (err: any) {
       Swal.fire({
@@ -190,215 +186,341 @@ export default function CategoriesPage() {
     }
   }
 
+  // Filter and search categories
+  const filteredCategories = categories.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = filterType === "ALL" || c.type === filterType
+    return matchesSearch && matchesType
+  })
+
+  const incomeCount = categories.filter((c) => c.type === "INCOME").length
+  const expenseCount = categories.filter((c) => c.type === "EXPENSE").length
+
   return (
-    <div className="w-full min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Layers className="w-8 h-8 text-blue-600" />
-          Categories
-        </h1>
+    <div className="w-full min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-amber-200/40 to-orange-200/40 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-yellow-200/40 to-amber-200/40 rounded-full blur-3xl" />
 
-        <button
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus size={20} /> Add Category
-        </button>
-      </div>
+      <div className="relative z-10 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Layers className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Categories</h1>
+              <p className="text-gray-500 text-sm">Manage your income and expense categories</p>
+            </div>
+          </div>
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-100 text-gray-600 uppercase tracking-wide text-sm font-semibold">
-            <tr>
-              <th className="p-4 text-left">Name</th>
-              <th className="p-4 text-left">Type</th>
-              <th className="p-4 text-right">Actions</th>
-            </tr>
-          </thead>
+          <button
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-3 rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 font-medium"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus size={20} /> Add Category
+          </button>
+        </div>
 
-          <tbody className="text-gray-800 text-base">
-            {categories.map((c) => (
-              <tr key={c._id} className="border-t hover:bg-gray-50 transition-all">
-                <td className="p-4 flex items-center gap-3 font-medium">
-                  <span className="text-2xl">{c.icon}</span>
-                  <span className="font-semibold">{c.name}</span>
-                </td>
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${c.type === "INCOME"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                      }`}
-                  >
-                    {c.type === "INCOME" ? "Income" : "Expense"}
-                  </span>
-                </td>
-                <td className="p-4 text-right flex justify-end gap-3">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50 hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center">
+                <Grid3X3 className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Total Categories</p>
+                <p className="text-2xl font-bold text-gray-800">{categories.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50 hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-green-100 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Income Categories</p>
+                <p className="text-2xl font-bold text-emerald-600">{incomeCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 shadow-lg border border-white/50 hover:shadow-xl transition-all hover:-translate-y-1">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-rose-100 rounded-xl flex items-center justify-center">
+                <TrendingDown className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Expense Categories</p>
+                <p className="text-2xl font-bold text-red-500">{expenseCount}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search categories..."
+                className="w-full pl-10 pr-4 py-3 bg-white/80 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              {(["ALL", "INCOME", "EXPENSE"] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                    filterType === type
+                      ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg"
+                      : "bg-white/80 text-gray-600 hover:bg-amber-50 border border-gray-200"
+                  }`}
+                >
+                  {type === "ALL" ? "All" : type === "INCOME" ? "Income" : "Expense"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Categories Grid */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 overflow-hidden">
+          {filteredCategories.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+              {filteredCategories.map((c) => (
+                <div
+                  key={c._id}
+                  className="bg-white rounded-xl p-4 shadow-md border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 group"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                          c.type === "INCOME"
+                            ? "bg-gradient-to-br from-emerald-100 to-green-100"
+                            : "bg-gradient-to-br from-red-100 to-rose-100"
+                        }`}
+                      >
+                        {c.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800">{c.name}</h3>
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            c.type === "INCOME" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {c.type === "INCOME" ? "Income" : "Expense"}
+                        </span>
+                      </div>
+                    </div>
+                    {c.is_default && (
+                      <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium">
+                        Default
+                      </span>
+                    )}
+                  </div>
+
                   {!c.is_default && (
-                    <>
+                    <div className="flex gap-2 pt-3 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition flex items-center gap-1 text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-all text-sm font-medium"
                         onClick={() => openEditModal(c)}
                       >
-                        <Pencil size={16} /> Edit
+                        <Pencil size={14} /> Edit
                       </button>
-
                       <button
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition flex items-center gap-1 text-sm font-medium"
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-sm font-medium"
                         onClick={() => deleteCategories(c._id, c.is_default)}
                       >
-                        <Trash2 size={16} /> Delete
+                        <Trash2 size={14} /> Delete
                       </button>
-                    </>
+                    </div>
                   )}
-                </td>
-              </tr>
-            ))}
-
-            {categories.length === 0 && (
-              <tr>
-                <td colSpan={3} className="p-6 text-center text-gray-500 italic">
-                  No categories found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Tag className="w-10 h-10 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No categories found</h3>
+              <p className="text-gray-500 mb-6">
+                {searchTerm || filterType !== "ALL"
+                  ? "Try adjusting your search or filter"
+                  : "Get started by adding your first category"}
+              </p>
+              {!searchTerm && filterType === "ALL" && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-3 rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg font-medium"
+                >
+                  <Plus size={20} /> Add Your First Category
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Modal */}
+      {/* Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 relative">
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              onClick={() => setIsModalOpen(false)}
-            >
-              <X size={24} />
-            </button>
-
-            <h2 className="text-2xl font-bold mb-4">Add Category</h2>
-
-            <label className="block mb-3">
-              <span className="text-gray-700 font-medium">Name</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Shopping"
-              />
-            </label>
-
-            <label className="block mb-3">
-              <span className="text-gray-700 font-medium">Type</span>
-              <select
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={newType}
-                onChange={(e) =>
-                  setNewType(e.target.value as "INCOME" | "EXPENSE")
-                }
-              >
-                <option value="INCOME">Income</option>
-                <option value="EXPENSE">Expense</option>
-              </select>
-            </label>
-
-            <label className="block mb-6">
-              <span className="text-gray-700 font-medium">Icon</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={newIcon}
-                onChange={(e) => setNewIcon(e.target.value)}
-                placeholder="🍔"
-              />
-            </label>
-
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-5 relative">
               <button
-                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
                 onClick={() => setIsModalOpen(false)}
               >
-                Cancel
+                <X size={24} />
               </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={addCategory}
-              >
-                Save
-              </button>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Add Category</h2>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <label className="block mb-4">
+                <span className="text-gray-700 font-medium text-sm">Category Name</span>
+                <input
+                  type="text"
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="e.g., Shopping"
+                />
+              </label>
+
+              <label className="block mb-4">
+                <span className="text-gray-700 font-medium text-sm">Type</span>
+                <select
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value as "INCOME" | "EXPENSE")}
+                >
+                  <option value="INCOME">Income</option>
+                  <option value="EXPENSE">Expense</option>
+                </select>
+              </label>
+
+              <label className="block mb-6">
+                <span className="text-gray-700 font-medium text-sm">Icon (emoji)</span>
+                <input
+                  type="text"
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-2xl"
+                  value={newIcon}
+                  onChange={(e) => setNewIcon(e.target.value)}
+                  placeholder="🍔"
+                />
+              </label>
+
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all font-medium shadow-lg"
+                  onClick={addCategory}
+                >
+                  Save Category
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 relative">
-
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              onClick={() => setIsEditModalOpen(false)}
-            >
-              <X size={24} />
-            </button>
-
-            <h2 className="text-2xl font-bold mb-4">Edit Category</h2>
-
-            <label className="block mb-3">
-              <span className="text-gray-700 font-medium">Name</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-              />
-            </label>
-
-            <label className="block mb-3">
-              <span className="text-gray-700 font-medium">Type</span>
-              <select
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={editType}
-                onChange={(e) => setEditType(e.target.value as "INCOME" | "EXPENSE")}
-              >
-                <option value="INCOME">Income</option>
-                <option value="EXPENSE">Expense</option>
-              </select>
-            </label>
-
-            <label className="block mb-6">
-              <span className="text-gray-700 font-medium">Icon</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
-                value={editIcon}
-                onChange={(e) => setEditIcon(e.target.value)}
-              />
-            </label>
-
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-5 relative">
               <button
-                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
                 onClick={() => setIsEditModalOpen(false)}
               >
-                Cancel
+                <X size={24} />
               </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                onClick={updateCategories}
-              >
-                Update
-              </button>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Pencil className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Edit Category</h2>
+              </div>
             </div>
 
+            {/* Modal Body */}
+            <div className="p-6">
+              <label className="block mb-4">
+                <span className="text-gray-700 font-medium text-sm">Category Name</span>
+                <input
+                  type="text"
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
+              </label>
+
+              <label className="block mb-4">
+                <span className="text-gray-700 font-medium text-sm">Type</span>
+                <select
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all"
+                  value={editType}
+                  onChange={(e) => setEditType(e.target.value as "INCOME" | "EXPENSE")}
+                >
+                  <option value="INCOME">Income</option>
+                  <option value="EXPENSE">Expense</option>
+                </select>
+              </label>
+
+              <label className="block mb-6">
+                <span className="text-gray-700 font-medium text-sm">Icon (emoji)</span>
+                <input
+                  type="text"
+                  className="mt-2 block w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-2xl"
+                  value={editIcon}
+                  onChange={(e) => setEditIcon(e.target.value)}
+                />
+              </label>
+
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:from-amber-600 hover:to-orange-700 transition-all font-medium shadow-lg"
+                  onClick={updateCategories}
+                >
+                  Update Category
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
-
     </div>
   )
 }
