@@ -524,12 +524,6 @@ export default function BudgetPage() {
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   <Calendar size={18} />
                 </div>
-                <input
-                  type="month"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-gray-50 transition-all"
-                  value={editBudget.month}
-                  onChange={(e) => setEditBudget({ ...editBudget, month: e.target.value })}
-                />
               </div>
 
               <div className="flex gap-3 mt-6">
