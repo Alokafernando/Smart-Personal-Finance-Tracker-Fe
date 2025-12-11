@@ -1,8 +1,11 @@
 import type React from "react"
-import { useState, useMemo, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Plus, Edit2, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
-import { getAllTransactions, type Transaction } from "../services/transaction";
-import { getAllCategories, type Category } from "../services/category";
+import { createTransaction, getAllTransactions, type Transaction } from "../services/transaction"
+import { getAllCategories, type Category } from "../services/category"
+
+import Swal from "sweetalert2"
+
 
 
 const categoryColors: Record<string, { bg: string; text: string; icon: string }> = {
@@ -26,35 +29,39 @@ const categoryColors: Record<string, { bg: string; text: string; icon: string }>
 export default function TransactionsPage() {
   const [search, setSearch] = useState("")
   const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [categories, setCategories] = useState<{ _id: string, name: string }[]>([]);
+  const [categories, setCategories] = useState<{
+    [x: string]: string
+    _id: string,
+    name: string
+  }[]>([])
 
 
   // Add Transaction modal / OCR modal states
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showOCRModal, setShowOCRModal] = useState(false);
-  const [ocrStep, setOcrStep] = useState<"upload" | "scanning" | "review">("upload");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showOCRModal, setShowOCRModal] = useState(false)
+  const [ocrStep, setOcrStep] = useState<"upload" | "scanning" | "review">("upload")
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [ocrResult, setOcrResult] = useState<{
-    merchant: string;
-    amount: string;
-    date: string;
-    category: string;
-    aiSuggested: boolean;
-  } | null>(null);
+    merchant: string
+    amount: string
+    date: string
+    category: string
+    aiSuggested: boolean
+  } | null>(null)
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [newTransaction, setNewTransaction] = useState({
     title: "",
-    category: "Food",
+    category: "",
     date: new Date().toISOString().split("T")[0], //2025-12-11T08:14:30.123Z -> 2025-12-11
     amount: "",
-  });
+  })
 
   const loadAllTransaction = async () => {
     try {
-      const data = await getAllTransactions();
-      setTransactions(data);
+      const data = await getAllTransactions()
+      setTransactions(data)
     } catch (err) {
       console.error(err)
     }
@@ -76,49 +83,105 @@ export default function TransactionsPage() {
 
 
   const filteredTx = transactions.filter((t) =>
-    (t.title || "").toLowerCase().includes(search.toLowerCase())
-  );
+    (t.note || "").toLowerCase().includes(search.toLowerCase())
+  )
 
 
-  // Add manual transaction
-  const handleAddManualTransaction = () => {
-    if (!newTransaction.title || !newTransaction.amount) return;
+  const handleAddManualTransaction = async () => {
+    if (!newTransaction.title) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Please fill title field before saving.",
+      })
+    }
 
-    const tx: Transaction = {
-      id: Date.now(),
-      title: newTransaction.title,
-      category: newTransaction.category,
-      date: newTransaction.date,
-      amount:
-        newTransaction.category === "Income"
-          ? Math.abs(Number(newTransaction.amount))
-          : -Math.abs(Number(newTransaction.amount)),
-    };
+    if (!newTransaction.amount) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Please fill amount field before saving.",
+      })
+    }
 
-    setTransactions((prev) => [tx, ...prev]);
-    setShowAddModal(false);
-    setNewTransaction({
-      title: "",
-      category: "Food",
-      date: new Date().toISOString().split("T")[0],
-      amount: "",
-    });
-  };
+    if (!newTransaction.category) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing fields",
+        text: "Please select category before saving.",
+      })
+    }
+
+    const selectedCategory = categories.find(
+      (cat) => cat._id === newTransaction.category
+    )
+
+    if (!selectedCategory) {
+      return Swal.fire({
+        icon: "error",
+        title: "Invalid category",
+        text: "Selected category not found.",
+      })
+    }
+
+    const type = (selectedCategory as any).type || "EXPENSE"
+
+
+    try {
+      const obj = {
+        category_id: newTransaction.category,
+        amount: Number(newTransaction.amount),
+        date: newTransaction.date,
+        note: newTransaction.title,
+        type
+      }
+
+      const res = await createTransaction(obj)
+      console.log(res)
+
+      await loadAllTransaction()
+
+      Swal.fire({
+        icon: "success",
+        title: "Transaction added",
+        text: "Your transaction has been saved successfully!",
+        showConfirmButton: false,
+      })
+
+      setShowAddModal(false)
+      setNewTransaction({
+        title: "",
+        category: "",
+        amount: "",
+        date: new Date().toISOString().split("T")[0],
+      })
+
+    } catch (err) {
+      console.error("Failed to add transaction", err)
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to add transaction. Please try again.",
+      })
+    }
+  }
+
+
 
   // Delete transaction
   const handleDelete = (id: number) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
+    setTransactions((prev) => prev.filter((t) => t.id !== id))
+  }
 
   // OCR File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (event) => {
-      setUploadedImage(event.target?.result as string);
-      setOcrStep("scanning");
+      setUploadedImage(event.target?.result as string)
+      setOcrStep("scanning")
 
       // Simulate OCR processing
       setTimeout(() => {
@@ -128,15 +191,15 @@ export default function TransactionsPage() {
           date: new Date().toISOString().split("T")[0],
           category: "Food",
           aiSuggested: true,
-        });
-        setOcrStep("review");
-      }, 2500);
-    };
-    reader.readAsDataURL(file);
-  };
+        })
+        setOcrStep("review")
+      }, 2500)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleConfirmOCR = () => {
-    if (!ocrResult) return;
+    if (!ocrResult) return
 
     const tx: Transaction = {
       id: Date.now(),
@@ -144,23 +207,28 @@ export default function TransactionsPage() {
       category: ocrResult.category,
       date: ocrResult.date,
       amount: -parseFloat(ocrResult.amount),
-    };
+    }
 
-    setTransactions((prev) => [tx, ...prev]);
-    resetOCRModal();
-  };
+    setTransactions((prev) => [tx, ...prev])
+    resetOCRModal()
+  }
 
   const resetOCRModal = () => {
-    setShowOCRModal(false);
-    setOcrStep("upload");
-    setUploadedImage(null);
-    setOcrResult(null);
-  };
+    setShowOCRModal(false)
+    setOcrStep("upload")
+    setUploadedImage(null)
+    setOcrResult(null)
+  }
 
-  // Totals
-  const totalIncome = transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  const netBalance = totalIncome - totalExpense;
+  const totalIncome = transactions
+    .filter((t) => t.type === "INCOME")
+    .reduce((sum, t) => sum + t.amount, 0)
+
+  const totalExpense = transactions
+    .filter((t) => t.type === "EXPENSE")
+    .reduce((sum, t) => sum + t.amount, 0)
+
+  const netBalance = totalIncome - totalExpense
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50/50 via-orange-50/30 to-yellow-50/50 p-6">
@@ -277,54 +345,66 @@ export default function TransactionsPage() {
             </thead>
 
             <tbody>
-              {transactions
-                .filter((t) => {
-                  const text = (t.merchant || t.note || "").toLowerCase();
-                  return text.includes(search.toLowerCase());
-                })
-                .map((t) => {
-                  const categoryName =
-                    categories.find((c) => c._id === t.category_id)?.name || "Unknown";
-                  const colors = categoryColors[categoryName] || categoryColors.Other;
+              {transactions.filter((t) =>
+                (t.merchant || t.note || "").toLowerCase().includes(search.toLowerCase())
+              ).length > 0 ? (
+                transactions
+                  .filter((t) => (t.merchant || t.note || "").toLowerCase().includes(search.toLowerCase()))
+                  .map((t) => {
+                    const categoryName =
+                      categories.find((c) => c._id === t.category_id)?.name || "Unknown"
+                    const colors = categoryColors[categoryName] || categoryColors.Other
 
-                  return (
-                    <tr key={t._id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
-                      {/* Transaction */}
-                      <td className="py-4 px-6">{t.merchant || t.note || "No Title"}</td>
+                    return (
+                      <tr key={t._id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                        {/* Transaction */}
+                        <td className="py-4 px-6">{t.merchant || t.note || "No Title"}</td>
 
-                      {/* Category */}
-                      <td className="py-4 px-6">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
+                        {/* Category */}
+                        <td className="py-4 px-6">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
+                          >
+                            {categoryName}
+                          </span>
+                        </td>
+
+                        {/* Date */}
+                        <td className="py-4 px-6">{new Date(t.date).toLocaleDateString()}</td>
+
+                        {/* Amount */}
+                        <td
+                          className={`py-4 px-6 text-right font-medium ${t.type === "INCOME" ? "text-emerald-600" : "text-red-500"
+                            }`}
                         >
-                          {categoryName}
-                        </span>
-                      </td>
+                          Rs {Math.abs(t.amount).toFixed(2)}
+                        </td>
 
-                      {/* Date */}
-                      <td className="py-4 px-6">{new Date(t.date).toLocaleDateString()}</td>
-
-                      {/* Amount */}
-                      <td
-                        className={`py-4 px-6 text-right font-medium ${t.amount > 0 ? "text-emerald-600" : "text-red-500"
-                          }`}
-                      >
-                        Rs {t.amount.toFixed(2)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-4 px-6 text-center">
-                        <button
-                          onClick={() => handleDelete(t._id)}
-                          className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        {/* Actions */}
+                        <td className="py-4 px-6 text-center">
+                          <button
+                            onClick={() => handleDelete(t._id)}
+                            className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="py-8 px-6 text-center text-gray-400 cursor-pointer hover:text-amber-600 transition-colors"
+                    onClick={() => setShowAddModal(true)}
+                  >
+                    No transactions found. Click here to add a new transaction.
+                  </td>
+                </tr>
+              )}
             </tbody>
+
           </table>
         </div>
 
@@ -587,9 +667,13 @@ export default function TransactionsPage() {
                   onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
                 >
+                  <option value="" disabled>
+                    Select Category
+                  </option>
+
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
-                      {cat.name} 
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
