@@ -1,25 +1,6 @@
-"use client"
-
 import type React from "react"
 import { useEffect, useState, type ChangeEvent } from "react"
-import {
-  User,
-  Save,
-  Camera,
-  Mail,
-  Bell,
-  Globe,
-  ShieldCheck,
-  Smartphone,
-  Lock,
-  X,
-  Eye,
-  EyeOff,
-  Settings,
-  ChevronRight,
-  Shield,
-  HelpCircle,
-} from "lucide-react"
+import {  User, Save, Camera,  Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff, Settings, ChevronRight, Shield, HelpCircle } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
 import { getUserDetails, passwordChangeHandle } from "../services/auth"
 import { updateProfileImage, updateUserDetails } from "../services/user"
@@ -84,6 +65,8 @@ export default function SettingsPage() {
       }
 
       const res = await updateUserDetails(user.userId, payload)
+      console.log(res.message)
+      
       Swal.fire({
         icon: "success",
         title: "Profile Updated",

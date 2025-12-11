@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Plus, Edit2, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
-import { createTransaction, getAllTransactions, type Transaction } from "../services/transaction"
+import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
+import { createTransaction, deleteTransaction, getAllTransactions, type Transaction } from "../services/transaction"
 import { getAllCategories, type Category } from "../services/category"
 
 import Swal from "sweetalert2"
@@ -168,10 +168,39 @@ export default function TransactionsPage() {
 
 
 
-  // Delete transaction
-  const handleDelete = (id: number) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
+ const handleDelete = async (transactionId: string) => {
+  try {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Are you sure?",
+      text: "Do you want to delete this transaction?",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#ef4444",
+    });
+
+    if (!result.isConfirmed) return
+
+     const res = await deleteTransaction(transactionId)
+     console.log(res.message)
+
+    loadAllTransaction()
+
+    await Swal.fire({
+      icon: "success",
+      title: "Deleted",
+      text: "Transaction deleted successfully.",
+      confirmButtonColor: "#f59e0b",
+    })
+  } catch (err: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Delete Failed",
+      text: err?.response?.data?.message || "Something went wrong!",
+    })
   }
+}
 
   // OCR File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -381,14 +410,26 @@ export default function TransactionsPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-4 px-6 text-center">
+                        <td className="py-4 px-6 text-center flex justify-center gap-2">
+                          {/* Update/Edit Button */}
+                          <button
+                            onClick={() => handleUpdate(t._id)}
+                            className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                            title="Edit Transaction"
+                          >
+                            <Pencil className="w-4 h-4 text-blue-500" />
+                          </button>
+
+                          {/* Delete Button */}
                           <button
                             onClick={() => handleDelete(t._id)}
                             className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Delete Transaction"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </button>
                         </td>
+
                       </tr>
                     )
                   })
