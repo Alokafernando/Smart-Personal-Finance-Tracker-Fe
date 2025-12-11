@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, PieChart, Wallet, TrendingUp, AlertCircle, X, DollarSign, Calendar } from "lucide-react"
 import {

@@ -1,173 +1,166 @@
-"use client"
-
 import type React from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
+import { Plus, Edit2, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
+import { getAllTransactions, type Transaction } from "../services/transaction";
+import { getAllCategories, type Category } from "../services/category";
 
-import { useState, useMemo, useRef } from "react"
-import {
-  Plus,
-  Edit2,
-  Trash2,
-  Search,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Filter,
-  ArrowUpDown,
-  Receipt,
-  Calendar,
-  Camera,
-  Upload,
-  Scan,
-  Sparkles,
-  X,
-  Check,
-  Loader2,
-  ImageIcon,
-} from "lucide-react"
 
-/* ---------------------------------------------
-   Types
---------------------------------------------- */
-type Transaction = {
-  id: number
-  title: string
-  category: string
-  date: string
-  amount: number
-}
-
-/* ---------------------------------------------
-   Category Colors
---------------------------------------------- */
 const categoryColors: Record<string, { bg: string; text: string; icon: string }> = {
-  Income: { bg: "bg-emerald-50", text: "text-emerald-600", icon: "bg-emerald-100" },
-  Food: { bg: "bg-orange-50", text: "text-orange-600", icon: "bg-orange-100" },
-  Transport: { bg: "bg-blue-50", text: "text-blue-600", icon: "bg-blue-100" },
-  Bills: { bg: "bg-purple-50", text: "text-purple-600", icon: "bg-purple-100" },
-  Shopping: { bg: "bg-pink-50", text: "text-pink-600", icon: "bg-pink-100" },
-  Entertainment: { bg: "bg-amber-50", text: "text-amber-600", icon: "bg-amber-100" },
+  //income
+  Salary: { bg: "bg-violet-100", text: "text-violet-700", icon: "bg-violet-200" },
+  Business: { bg: "bg-indigo-100", text: "text-indigo-700", icon: "bg-indigo-200" },
+  Investments: { bg: "bg-green-100", text: "text-green-700", icon: "bg-green-200" },
+
+  //expense
+  Food: { bg: "bg-amber-100", text: "text-amber-700", icon: "bg-amber-200" },
+  Shopping: { bg: "bg-pink-100", text: "text-pink-700", icon: "bg-pink-200" },
+  Fuel: { bg: "bg-sky-100", text: "text-sky-700", icon: "bg-sky-200" },
+  Bills: { bg: "bg-red-100", text: "text-red-700", icon: "bg-red-200" },
+  Entertainment: { bg: "bg-blue-100", text: "text-blue-700", icon: "bg-blue-200" },
+
+  //other
+  Other: { bg: "bg-gray-100", text: "text-gray-700", icon: "bg-gray-200" },
 }
 
-/* ---------------------------------------------
-   Component
---------------------------------------------- */
+
 export default function TransactionsPage() {
   const [search, setSearch] = useState("")
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, title: "Salary - November", category: "Income", date: "2025-11-25", amount: 2500 },
-    { id: 2, title: "Grocery Shopping", category: "Food", date: "2025-11-24", amount: -120.5 },
-    { id: 3, title: "Uber Ride", category: "Transport", date: "2025-11-23", amount: -15.2 },
-    { id: 4, title: "Electricity Bill", category: "Bills", date: "2025-11-21", amount: -80.0 },
-    { id: 5, title: "Freelance Work", category: "Income", date: "2025-11-18", amount: 560 },
-  ])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [categories, setCategories] = useState<{ _id: string, name: string }[]>([]);
 
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [showOCRModal, setShowOCRModal] = useState(false)
-  const [ocrStep, setOcrStep] = useState<"upload" | "scanning" | "review">("upload")
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+
+  // Add Transaction modal / OCR modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showOCRModal, setShowOCRModal] = useState(false);
+  const [ocrStep, setOcrStep] = useState<"upload" | "scanning" | "review">("upload");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [ocrResult, setOcrResult] = useState<{
-    merchant: string
-    amount: string
-    date: string
-    category: string
-    aiSuggested: boolean
-  } | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+    merchant: string;
+    amount: string;
+    date: string;
+    category: string;
+    aiSuggested: boolean;
+  } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newTransaction, setNewTransaction] = useState({
     title: "",
     category: "Food",
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toISOString().split("T")[0], //2025-12-11T08:14:30.123Z -> 2025-12-11
     amount: "",
-  })
+  });
 
-  /* Filtered results */
-  const filteredTx = useMemo(
-    () =>
-      transactions.filter(
-        (t) =>
-          t.title.toLowerCase().includes(search.toLowerCase()) ||
-          t.category.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [transactions, search],
-  )
-
-  /* Delete Transaction */
-  const handleDelete = (id: number) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string)
-        setOcrStep("scanning")
-        // Simulate OCR processing
-        setTimeout(() => {
-          setOcrResult({
-            merchant: "SuperMart Grocery",
-            amount: "85.50",
-            date: new Date().toISOString().split("T")[0],
-            category: "Food",
-            aiSuggested: true,
-          })
-          setOcrStep("review")
-        }, 2500)
-      }
-      reader.readAsDataURL(file)
+  const loadAllTransaction = async () => {
+    try {
+      const data = await getAllTransactions();
+      setTransactions(data);
+    } catch (err) {
+      console.error(err)
     }
   }
+
+  const loadAllCategories = async () => {
+    try {
+      const categoryData = await getAllCategories()
+      setCategories(categoryData.categories)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    loadAllCategories()
+    loadAllTransaction()
+  }, [])
+
+
+  const filteredTx = transactions.filter((t) =>
+    (t.title || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+
+  // Add manual transaction
+  const handleAddManualTransaction = () => {
+    if (!newTransaction.title || !newTransaction.amount) return;
+
+    const tx: Transaction = {
+      id: Date.now(),
+      title: newTransaction.title,
+      category: newTransaction.category,
+      date: newTransaction.date,
+      amount:
+        newTransaction.category === "Income"
+          ? Math.abs(Number(newTransaction.amount))
+          : -Math.abs(Number(newTransaction.amount)),
+    };
+
+    setTransactions((prev) => [tx, ...prev]);
+    setShowAddModal(false);
+    setNewTransaction({
+      title: "",
+      category: "Food",
+      date: new Date().toISOString().split("T")[0],
+      amount: "",
+    });
+  };
+
+  // Delete transaction
+  const handleDelete = (id: number) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // OCR File Upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setUploadedImage(event.target?.result as string);
+      setOcrStep("scanning");
+
+      // Simulate OCR processing
+      setTimeout(() => {
+        setOcrResult({
+          merchant: "SuperMart Grocery",
+          amount: "85.50",
+          date: new Date().toISOString().split("T")[0],
+          category: "Food",
+          aiSuggested: true,
+        });
+        setOcrStep("review");
+      }, 2500);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleConfirmOCR = () => {
-    if (ocrResult) {
-      const newTx: Transaction = {
-        id: Date.now(),
-        title: ocrResult.merchant,
-        category: ocrResult.category,
-        date: ocrResult.date,
-        amount: -Number.parseFloat(ocrResult.amount),
-      }
-      setTransactions((prev) => [newTx, ...prev])
-      resetOCRModal()
-    }
-  }
+    if (!ocrResult) return;
+
+    const tx: Transaction = {
+      id: Date.now(),
+      title: ocrResult.merchant,
+      category: ocrResult.category,
+      date: ocrResult.date,
+      amount: -parseFloat(ocrResult.amount),
+    };
+
+    setTransactions((prev) => [tx, ...prev]);
+    resetOCRModal();
+  };
 
   const resetOCRModal = () => {
-    setShowOCRModal(false)
-    setOcrStep("upload")
-    setUploadedImage(null)
-    setOcrResult(null)
-  }
+    setShowOCRModal(false);
+    setOcrStep("upload");
+    setUploadedImage(null);
+    setOcrResult(null);
+  };
 
-  const handleAddManualTransaction = () => {
-    if (newTransaction.title && newTransaction.amount) {
-      const newTx: Transaction = {
-        id: Date.now(),
-        title: newTransaction.title,
-        category: newTransaction.category,
-        date: newTransaction.date,
-        amount:
-          newTransaction.category === "Income"
-            ? Math.abs(Number.parseFloat(newTransaction.amount))
-            : -Math.abs(Number.parseFloat(newTransaction.amount)),
-      }
-      setTransactions((prev) => [newTx, ...prev])
-      setShowAddModal(false)
-      setNewTransaction({
-        title: "",
-        category: "Food",
-        date: new Date().toISOString().split("T")[0],
-        amount: "",
-      })
-    }
-  }
-
-  /* Calculate totals */
-  const totalIncome = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0)
-  const totalExpense = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0)
-  const netBalance = totalIncome - totalExpense
+  // Totals
+  const totalIncome = transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const netBalance = totalIncome - totalExpense;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50/50 via-orange-50/30 to-yellow-50/50 p-6">
@@ -284,83 +277,53 @@ export default function TransactionsPage() {
             </thead>
 
             <tbody>
-              {filteredTx.length > 0 ? (
-                filteredTx.map((t, index) => {
-                  const catStyle = categoryColors[t.category] || {
-                    bg: "bg-gray-50",
-                    text: "text-gray-600",
-                    icon: "bg-gray-100",
-                  }
+              {transactions
+                .filter((t) => {
+                  const text = (t.merchant || t.note || "").toLowerCase();
+                  return text.includes(search.toLowerCase());
+                })
+                .map((t) => {
+                  const categoryName =
+                    categories.find((c) => c._id === t.category_id)?.name || "Unknown";
+                  const colors = categoryColors[categoryName] || categoryColors.Other;
+
                   return (
-                    <tr
-                      key={t.id}
-                      className={`border-t border-gray-50 hover:bg-amber-50/50 transition-colors ${index % 2 === 0 ? "bg-white/50" : "bg-gray-50/30"}`}
-                    >
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl ${catStyle.icon} flex items-center justify-center`}>
-                            {t.amount > 0 ? (
-                              <TrendingUp className={`w-5 h-5 ${catStyle.text}`} />
-                            ) : (
-                              <TrendingDown className={`w-5 h-5 ${catStyle.text}`} />
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-800">{t.title}</span>
-                        </div>
-                      </td>
+                    <tr key={t._id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                      {/* Transaction */}
+                      <td className="py-4 px-6">{t.merchant || t.note || "No Title"}</td>
+
+                      {/* Category */}
                       <td className="py-4 px-6">
                         <span
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium ${catStyle.bg} ${catStyle.text}`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
                         >
-                          {t.category}
+                          {categoryName}
                         </span>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Calendar size={14} />
-                          {t.date}
-                        </div>
-                      </td>
+
+                      {/* Date */}
+                      <td className="py-4 px-6">{new Date(t.date).toLocaleDateString()}</td>
+
+                      {/* Amount */}
                       <td
-                        className={`py-4 px-6 text-right font-bold ${t.amount > 0 ? "text-emerald-600" : "text-red-500"}`}
+                        className={`py-4 px-6 text-right font-medium ${t.amount > 0 ? "text-emerald-600" : "text-red-500"
+                          }`}
                       >
-                        {t.amount > 0 ? `+${t.amount.toFixed(2)}` : `-${Math.abs(t.amount).toFixed(2)}`}
+                        Rs {t.amount.toFixed(2)}
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="flex justify-center gap-2">
-                          <button
-                            className="p-2 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-all"
-                            title="Edit"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(t.id)}
-                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+
+                      {/* Actions */}
+                      <td className="py-4 px-6 text-center">
+                        <button
+                          onClick={() => handleDelete(t._id)}
+                          className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
                       </td>
                     </tr>
-                  )
-                })
-              ) : (
-                <tr>
-                  <td colSpan={5} className="text-center text-gray-400 py-12">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Receipt className="w-8 h-8 text-gray-300" />
-                      </div>
-                      <p>No transactions found</p>
-                      <button className="text-amber-600 hover:text-amber-700 font-medium text-sm">
-                        Add your first transaction
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
+                  );
+                })}
             </tbody>
           </table>
         </div>
@@ -570,6 +533,7 @@ export default function TransactionsPage() {
         </div>
       )}
 
+      {/* Add transaction modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -623,9 +587,9 @@ export default function TransactionsPage() {
                   onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
                 >
-                  {Object.keys(categoryColors).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name} 
                     </option>
                   ))}
                 </select>

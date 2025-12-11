@@ -1,6 +1,7 @@
 import api from "./api"
 
 export type Transaction = {
+    title: string
     _id: string
     user_id: string
     category_id?: string
@@ -14,11 +15,12 @@ export type Transaction = {
 }
 
 export const getAllTransactions = async () => {
-  const res = await api.get("/api/transactions")
+  const res = await api.get("/transactions/")
   return res.data
 }
 
-export const createTransaction = async () => {
-  const res = await api.post("/api/transactions")
+export const createTransaction = async (data: Partial<Transaction>) => {
+  const res = await api.post("/transactions/", data)
   return res.data
 }
+
