@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
-import { createTransaction, deleteTransaction, getAllTransactions, type Transaction } from "../services/transaction"
+import { createTransaction, deleteTransaction, getAllTransactions, updateTransaction, type Transaction } from "../services/transaction"
 import { getAllCategories, type Category } from "../services/category"
 
 import Swal from "sweetalert2"
@@ -57,6 +57,10 @@ export default function TransactionsPage() {
     date: new Date().toISOString().split("T")[0], //2025-12-11T08:14:30.123Z -> 2025-12-11
     amount: "",
   })
+
+  //
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const loadAllTransaction = async () => {
     try {
@@ -168,39 +172,39 @@ export default function TransactionsPage() {
 
 
 
- const handleDelete = async (transactionId: string) => {
-  try {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "Are you sure?",
-      text: "Do you want to delete this transaction?",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#ef4444",
-    });
+  const handleDelete = async (transactionId: string) => {
+    try {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Are you sure?",
+        text: "Do you want to delete this transaction?",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#ef4444",
+      });
 
-    if (!result.isConfirmed) return
+      if (!result.isConfirmed) return
 
-     const res = await deleteTransaction(transactionId)
-     console.log(res.message)
+      const res = await deleteTransaction(transactionId)
+      console.log(res.message)
 
-    loadAllTransaction()
+      loadAllTransaction()
 
-    await Swal.fire({
-      icon: "success",
-      title: "Deleted",
-      text: "Transaction deleted successfully.",
-      confirmButtonColor: "#f59e0b",
-    })
-  } catch (err: any) {
-    Swal.fire({
-      icon: "error",
-      title: "Delete Failed",
-      text: err?.response?.data?.message || "Something went wrong!",
-    })
+      await Swal.fire({
+        icon: "success",
+        title: "Deleted",
+        text: "Transaction deleted successfully.",
+        confirmButtonColor: "#f59e0b",
+      })
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Delete Failed",
+        text: err?.response?.data?.message || "Something went wrong!",
+      })
+    }
   }
-}
 
   // OCR File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +252,77 @@ export default function TransactionsPage() {
     setUploadedImage(null)
     setOcrResult(null)
   }
+
+  const handleUpdate = (id: string) => {
+    const tx = transactions.find((t) => t._id === id);
+    if (!tx) return;
+
+    setEditingTransaction({
+      ...tx,
+      amount: Math.abs(tx.amount), // make sure amount is positive for editing
+    });
+    setShowEditModal(true)
+  }
+
+  //  update transaction
+  const handleSaveUpdate = async () => {
+    if (!editingTransaction) return;
+
+    if (!editingTransaction.note) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing Title",
+        text: "Please fill the title field before saving.",
+      });
+    }
+
+    if (!editingTransaction.amount) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing Amount",
+        text: "Please fill the amount field before saving.",
+      });
+    }
+
+    if (!editingTransaction.category_id) {
+      return Swal.fire({
+        icon: "warning",
+        title: "Missing Category",
+        text: "Please select a category before saving.",
+      });
+    }
+
+    try {
+      const obj = {
+        category_id: editingTransaction.category_id,
+        amount: Number(editingTransaction.amount),
+        date: editingTransaction.date,
+        note: editingTransaction.note,
+        type: editingTransaction.type,
+      };
+
+      const res = await updateTransaction(editingTransaction._id, obj);
+      console.log(res.message)
+
+      await loadAllTransaction();
+
+      Swal.fire({
+        icon: "success",
+        title: "Transaction updated",
+        text: "Your transaction has been updated successfully!",
+        showConfirmButton: false,
+      });
+
+      setShowEditModal(false);
+      setEditingTransaction(null);
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: err?.response?.data?.message || "Something went wrong!",
+      });
+    }
+  };
 
   const totalIncome = transactions
     .filter((t) => t.type === "INCOME")
@@ -750,6 +825,108 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
+
+      {showEditModal && editingTransaction && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Pencil className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Edit Transaction</h3>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-2 rounded-lg hover:bg-white/20 transition-colors text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+                <input
+                  type="text"
+                  value={editingTransaction.note}
+                  onChange={(e) =>
+                    setEditingTransaction({ ...editingTransaction, note: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
+                />
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Amount (Rs)</label>
+                <input
+                  type="number"
+                  value={editingTransaction.amount}
+                  onChange={(e) =>
+                    setEditingTransaction({ ...editingTransaction, amount: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+                <select
+                  value={editingTransaction.category_id}
+                  onChange={(e) =>
+                    setEditingTransaction({ ...editingTransaction, category_id: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
+                >
+                  <option value="" disabled>
+                    Select Category
+                  </option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date</label>
+                <input
+                  type="date"
+                  value={editingTransaction.date}
+                  onChange={(e) =>
+                    setEditingTransaction({ ...editingTransaction, date: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveUpdate}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-200 transition-all"
+                >
+                  Update Transaction
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

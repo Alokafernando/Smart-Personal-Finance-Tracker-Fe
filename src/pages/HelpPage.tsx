@@ -21,6 +21,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react"
+import { askFAQ } from "../services/faq"
 
 export default function HelpPage() {
   const [openChat, setOpenChat] = useState(false)
@@ -67,18 +68,31 @@ export default function HelpPage() {
     { title: "API Documentation", icon: FileText, type: "Docs", time: "Reference" },
   ]
 
-  const handleChatSend = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!message.trim()) return
+  const handleChatSend = async (e: React.FormEvent) => {
+  e.preventDefault()
+  if (!message.trim()) return
 
-    setChatLog((prev) => [...prev, `You: ${message}`])
+  // Show user message
+  setChatLog((prev) => [...prev, `You: ${message}`])
 
-    setTimeout(() => {
-      setChatLog((prev) => [...prev, `AI: I'm here to help you with anything related to finance tracking!`])
-    }, 800)
+  const userMsg = message
+  setMessage("")
 
-    setMessage("")
+  try {
+    // Call backend FAQ service
+    const response = await askFAQ(userMsg)
+
+    // Show AI response
+    setChatLog((prev) => [...prev, `AI: ${response.answer}`])
+  } catch (error) {
+    console.error(error)
+    setChatLog((prev) => [
+      ...prev,
+      `AI: Sorry, something went wrong with the server.`,
+    ])
   }
+}
+
 
   const filteredFaqs = faqs.filter(
     (faq) =>

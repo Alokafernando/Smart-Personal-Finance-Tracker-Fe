@@ -23,6 +23,11 @@ export const createTransaction = async (data: Partial<Transaction>) => {
   return res.data
 }
 
+export const updateTransaction = async ( transactionId: string,  body: any ) => {
+  const res = await api.put(`/transactions/${transactionId}`, body)
+  return res.data
+}
+
 export const deleteTransaction = async (transactionId: string) => {
   const res = await api.delete(`/transactions/${transactionId}`)
   return res.data

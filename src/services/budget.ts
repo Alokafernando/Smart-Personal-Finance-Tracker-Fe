@@ -19,8 +19,8 @@ export const addBudget = async (data: Budget) => {
   return res.data
 }
 
-export const updateBudget = async (budgetId: string, data: Partial<Budget>) => {
-  const res = await api.put(`/budget/${budgetId}`, data)
+export const updateBudget = async (budgetId: string, body: any) => {
+  const res = await api.put(`/budget/${budgetId}`, body)
   return res.data
 }
 
