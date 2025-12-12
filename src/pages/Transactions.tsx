@@ -867,7 +867,7 @@ export default function TransactionsPage() {
                   type="number"
                   value={editingTransaction.amount}
                   onChange={(e) =>
-                    setEditingTransaction({ ...editingTransaction, amount: e.target.value })
+                    setEditingTransaction({ ...editingTransaction, amount: Number(e.target.value) })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
                 />
