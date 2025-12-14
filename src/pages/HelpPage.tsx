@@ -2,26 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import {
-  Mail,
-  MessageCircle,
-  HelpCircle,
-  Info,
-  Bot,
-  ChevronDown,
-  ChevronUp,
-  Send,
-  Book,
-  Video,
-  FileText,
-  ExternalLink,
-  Clock,
-  CheckCircle,
-  Search,
-  Sparkles,
-  X,
-} from "lucide-react"
-import { askFAQ } from "../services/faq"
+import { Mail, MessageCircle, HelpCircle, Info, Bot, ChevronDown, ChevronUp, Send, Book, Video, FileText, ExternalLink,  Clock,  CheckCircle, Search, Sparkles, X, } from "lucide-react"
 
 export default function HelpPage() {
   const [openChat, setOpenChat] = useState(false)
@@ -80,10 +61,10 @@ export default function HelpPage() {
 
   try {
     // Call backend FAQ service
-    const response = await askFAQ(userMsg)
+    // const response = await askFAQ(userMsg)
 
     // Show AI response
-    setChatLog((prev) => [...prev, `AI: ${response.answer}`])
+    // setChatLog((prev) => [...prev, `AI: ${response.answer}`])
   } catch (error) {
     console.error(error)
     setChatLog((prev) => [
