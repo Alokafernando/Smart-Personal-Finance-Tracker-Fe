@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Area, AreaChart, } from "recharts"
 import { BarChart3, PieChartIcon, TrendingUp, TrendingDown, DollarSign, Wallet, ArrowUpRight, ArrowDownRight, Download, Filter, } from "lucide-react"
-import { getAnalytics } from "../services/analytics"
+import { getAnalytics, downloadAnalyticsPDF } from "../services/analytics"
 import type { AnalyticsSummary, MonthlyAnalytics, CategoryAnalytics, AnalyticsFilter, } from "../services/analytics"
+
 
 const PIE_COLORS = ["#f59e0b", "#fb923c", "#fbbf24", "#d97706", "#fcd34d"]
 
@@ -16,6 +17,9 @@ export default function AnalyticsPage() {
     const [isFilterOpen, setIsFilterOpen] = useState(false)
     const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
+
+    const [exporting, setExporting] = useState(false)
+
 
     const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -69,6 +73,38 @@ export default function AnalyticsPage() {
         )
     }
 
+    const handleExportPDF = async () => {
+        try {
+            setExporting(true)
+
+            const filter: AnalyticsFilter = {}
+
+            if (selectedMonth) filter.month = selectedMonth
+            if (selectedYear) filter.year = selectedYear
+
+            const blob = await downloadAnalyticsPDF(filter)
+
+            const url = window.URL.createObjectURL(
+                new Blob([blob], { type: "application/pdf" })
+            )
+
+            const link = document.createElement("a")
+            link.href = url
+            link.download = `finance-report-${selectedYear}${selectedMonth ? `-${selectedMonth}` : ""}.pdf`
+            document.body.appendChild(link)
+            link.click()
+
+            link.remove()
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error("PDF export failed", error)
+            alert("Failed to export PDF")
+        } finally {
+            setExporting(false)
+        }
+    }
+
+
     return (
         <div className="min-h-screen w-full overflow-y-auto bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 relative">
             {/* Background decorative elements */}
@@ -96,10 +132,17 @@ export default function AnalyticsPage() {
                             <Filter size={18} />
                             <span className="text-sm font-medium">Filter</span>
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl text-white hover:shadow-lg transition-all shadow-md">
+                        <button
+                            onClick={handleExportPDF}
+                            disabled={exporting}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl text-white hover:shadow-lg transition-all shadow-md disabled:opacity-70"
+                        >
                             <Download size={18} />
-                            <span className="text-sm font-medium">Export</span>
+                            <span className="text-sm font-medium">
+                                {exporting ? "Generating..." : "Export PDF"}
+                            </span>
                         </button>
+
                     </div>
                 </header>
 
@@ -370,7 +413,7 @@ export default function AnalyticsPage() {
                                 onClick={() => {
                                     setSelectedMonth(null)
                                     setSelectedYear(new Date().getFullYear())
-                                    fetchAnalytics() 
+                                    fetchAnalytics()
                                     setIsFilterOpen(false)
                                 }}
                                 className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"

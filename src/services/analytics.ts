@@ -52,3 +52,15 @@ export const getAnalytics = async (filter?: AnalyticsFilter) => {
   const res = await api.post<AnalyticsResponse>("/analytics/filter", filter || {})
   return res.data
 }
+
+export const downloadAnalyticsPDF = async (filter?: AnalyticsFilter) => {
+  const res = await api.post(
+    "/analytics/export/pdf",
+    filter || {},
+    {
+      responseType: "blob", // 🔥 IMPORTANT
+    }
+  )
+
+  return res.data
+}
