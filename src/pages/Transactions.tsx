@@ -1,10 +1,10 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Calendar, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
+import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, Wallet, Filter, ArrowUpDown, Receipt, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
 import { createTransaction, deleteTransaction, getAllTransactions, updateTransaction, type Transaction } from "../services/transaction"
-import { getAllCategories, type Category } from "../services/category"
-
+import { getAllCategories, } from "../services/category"
 import Swal from "sweetalert2"
+import { uploadReceiptOCR } from "../services/ocr"
 
 
 
@@ -42,6 +42,7 @@ export default function TransactionsPage() {
   const [ocrStep, setOcrStep] = useState<"upload" | "scanning" | "review">("upload")
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [ocrResult, setOcrResult] = useState<{
+    _id?: string
     merchant: string
     amount: string
     date: string
@@ -59,8 +60,8 @@ export default function TransactionsPage() {
   })
 
   //
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
   const loadAllTransaction = async () => {
     try {
@@ -182,7 +183,7 @@ export default function TransactionsPage() {
         confirmButtonText: "Yes, delete it",
         cancelButtonText: "Cancel",
         confirmButtonColor: "#ef4444",
-      });
+      })
 
       if (!result.isConfirmed) return
 
@@ -206,44 +207,76 @@ export default function TransactionsPage() {
     }
   }
 
-  // OCR File Upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setUploadedImage(event.target?.result as string)
-      setOcrStep("scanning")
+    setUploadedImage(URL.createObjectURL(file))
+    setOcrStep("scanning")
 
-      // Simulate OCR processing
-      setTimeout(() => {
-        setOcrResult({
-          merchant: "SuperMart Grocery",
-          amount: "85.50",
-          date: new Date().toISOString().split("T")[0],
-          category: "Food",
-          aiSuggested: true,
-        })
-        setOcrStep("review")
-      }, 2500)
+    try {
+      const res = await uploadReceiptOCR(file)
+      const tx = res.transaction
+
+      setOcrResult({
+        merchant: tx.merchant || "Unknown",
+        amount: tx.amount?.toString() || "0",
+        date: tx.date || new Date().toISOString().split("T")[0],
+        category: tx.ai_category || "Other",
+        aiSuggested: !!tx.ai_category,
+      })
+
+      setOcrStep("review")
+    } catch (err) {
+      console.error("OCR failed:", err)
+      Swal.fire({
+        icon: "error",
+        title: "OCR Failed",
+        text: "Failed to process the receipt. Please try again.",
+      })
+      resetOCRModal()
     }
-    reader.readAsDataURL(file)
   }
 
-  const handleConfirmOCR = () => {
+  const handleConfirmOCR = async () => {
     if (!ocrResult) return
 
-    const tx: Transaction = {
-      id: Date.now(),
-      title: ocrResult.merchant,
-      category: ocrResult.category,
-      date: ocrResult.date,
-      amount: -parseFloat(ocrResult.amount),
-    }
+    const selectedCategory = categories.find(c => c.name === ocrResult.category)
 
-    setTransactions((prev) => [tx, ...prev])
-    resetOCRModal()
+    if (!selectedCategory) return Swal.fire({
+      icon: "error",
+      title: "Category missing",
+      text: "Please select a valid category."
+    })
+
+    try {
+      const obj: any = {
+        category_id: selectedCategory._id,
+        amount: parseFloat(ocrResult.amount),
+        date: ocrResult.date,
+        note: ocrResult.merchant,
+        type: selectedCategory.type === "INCOME" ? "INCOME" : "EXPENSE",
+      }
+
+      const res = await createTransaction(obj)
+      console.log(res.data.message)
+      await loadAllTransaction()
+
+      Swal.fire({
+        icon: "success",
+        title: "Transaction added!",
+        showConfirmButton: false,
+        timer: 1200,
+      })
+
+      resetOCRModal()
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Save failed",
+        text: err?.response?.data?.message || "Something went wrong",
+      })
+    }
   }
 
   const resetOCRModal = () => {
@@ -254,26 +287,26 @@ export default function TransactionsPage() {
   }
 
   const handleUpdate = (id: string) => {
-    const tx = transactions.find((t) => t._id === id);
-    if (!tx) return;
+    const tx = transactions.find((t) => t._id === id)
+    if (!tx) return
 
     setEditingTransaction({
       ...tx,
       amount: Math.abs(tx.amount), // make sure amount is positive for editing
-    });
+    })
     setShowEditModal(true)
   }
 
   //  update transaction
   const handleSaveUpdate = async () => {
-    if (!editingTransaction) return;
+    if (!editingTransaction) return
 
     if (!editingTransaction.note) {
       return Swal.fire({
         icon: "warning",
         title: "Missing Title",
         text: "Please fill the title field before saving.",
-      });
+      })
     }
 
     if (!editingTransaction.amount) {
@@ -281,7 +314,7 @@ export default function TransactionsPage() {
         icon: "warning",
         title: "Missing Amount",
         text: "Please fill the amount field before saving.",
-      });
+      })
     }
 
     if (!editingTransaction.category_id) {
@@ -289,7 +322,7 @@ export default function TransactionsPage() {
         icon: "warning",
         title: "Missing Category",
         text: "Please select a category before saving.",
-      });
+      })
     }
 
     try {
@@ -299,30 +332,30 @@ export default function TransactionsPage() {
         date: editingTransaction.date,
         note: editingTransaction.note,
         type: editingTransaction.type,
-      };
+      }
 
-      const res = await updateTransaction(editingTransaction._id, obj);
+      const res = await updateTransaction(editingTransaction._id, obj)
       console.log(res.message)
 
-      await loadAllTransaction();
+      await loadAllTransaction()
 
       Swal.fire({
         icon: "success",
         title: "Transaction updated",
         text: "Your transaction has been updated successfully!",
         showConfirmButton: false,
-      });
+      })
 
-      setShowEditModal(false);
-      setEditingTransaction(null);
+      setShowEditModal(false)
+      setEditingTransaction(null)
     } catch (err: any) {
       Swal.fire({
         icon: "error",
         title: "Update Failed",
         text: err?.response?.data?.message || "Something went wrong!",
-      });
+      })
     }
-  };
+  }
 
   const totalIncome = transactions
     .filter((t) => t.type === "INCOME")
