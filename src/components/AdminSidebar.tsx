@@ -46,15 +46,15 @@ export default function Sidebar() {
 
   const menuItems = [
     { label: "Home", icon: Home, route: "/admin/home" },
-    { label: "Transactions", icon: Layers, route: "/" },
-    { label: "Budget", icon: ChartPie, route: "/" },
-    { label: "Categories", icon: Tag, route: "/" },
-    { label: "Revenue Analytics", icon: BarChart3, route: "/" },
+    { label: "Transactions", icon: Layers, route: "/admin/transaction" },
+    { label: "Budget", icon: ChartPie, route: "/admin/budget" },
+    { label: "Categories", icon: Tag, route: "/admin/categories" },
+    { label: "Revenue Analytics", icon: BarChart3, route: "/admin/analytics" },
   ]
 
   const extraItems = [
-    { label: "Settings", icon: Settings, route: "/settings" },
-    { label: "Help", icon: HelpCircle, route: "/help" },
+    { label: "Settings", icon: Settings, route: "/admin/settings" },
+    { label: "Help", icon: HelpCircle, route: "/admin/help" },
   ]
 
   const isActive = (route: string) => location.pathname === route

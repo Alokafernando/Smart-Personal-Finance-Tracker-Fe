@@ -15,6 +15,13 @@ const Budget = lazy(() => import("../pages/Budget"))
 const Categories = lazy(() => import("../pages/Categories"))
 
 const AdminHome = lazy(() => import("../pages/Admin/Home"))
+const AdminTransactions = lazy(() => import("../pages/Admin/Transaction"))
+const AdminHelp = lazy(() => import("../pages/Admin/Help"))
+const AdminSetting = lazy(() => import("../pages/Admin/Settings"))
+const AdminAnlytics = lazy(() => import("../pages/Admin/Analytics"))
+const AdminBudget = lazy(() => import("../pages/Admin/Budget"))
+const AdminCategories = lazy(() => import("../pages/Admin/Category"))
+
 
 
 
@@ -88,6 +95,12 @@ export default function Router() {
             }
           >
             <Route path="/admin/home" element={<AdminHome />} />
+            <Route path="/admin/budget" element={<AdminBudget />} />
+            <Route path="/admin/categories" element={<AdminCategories />} />
+            <Route path="/admin/analytics" element={<AdminAnlytics />} />
+            <Route path="/admin/help" element={<AdminHelp />} />
+            <Route path="/admin/settings" element={<AdminSetting />} />
+            <Route path="/admin/transaction" element={<AdminTransactions />} />
 
           </Route>
 
