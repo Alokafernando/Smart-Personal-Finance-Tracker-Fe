@@ -54,7 +54,7 @@ export default function HelpPage() {
   // Show user message
   setChatLog((prev) => [...prev, `You: ${message}`])
 
-  const userMsg = message
+  // const userMsg = message
   setMessage("")
 
   try {
