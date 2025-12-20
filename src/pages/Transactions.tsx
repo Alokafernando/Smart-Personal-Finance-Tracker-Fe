@@ -396,12 +396,6 @@ export default function TransactionsPage() {
             />
           </div>
 
-          {/* Filter Button */}
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm text-gray-600 hover:bg-amber-50 hover:border-amber-200 transition-all text-sm">
-            <Filter size={16} />
-            Filter
-          </button>
-
           <button
             onClick={() => setShowOCRModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/80 backdrop-blur-sm text-amber-700 hover:bg-amber-100 hover:border-amber-400 transition-all text-sm font-medium"
@@ -509,7 +503,9 @@ export default function TransactionsPage() {
                         </td>
 
                         {/* Date */}
-                        <td className="py-4 px-6">{new Date(t.date).toLocaleDateString()}</td>
+                        <td className="py-4 px-6">
+                          {new Date(t.date).toISOString().split("T")[0]}
+                        </td>
 
                         {/* Amount */}
                         <td

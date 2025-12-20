@@ -318,9 +318,8 @@ export default function BudgetPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-3 h-3 rounded-full ${
-                                percent < 50 ? "bg-green-500" : percent < 80 ? "bg-amber-500" : "bg-red-500"
-                              }`}
+                              className={`w-3 h-3 rounded-full ${percent < 50 ? "bg-green-500" : percent < 80 ? "bg-amber-500" : "bg-red-500"
+                                }`}
                             />
                             <span className="font-medium text-gray-800">{getCategoryName(b.category_id)}</span>
                           </div>
@@ -337,20 +336,18 @@ export default function BudgetPage() {
                           <div className="flex items-center gap-3">
                             <div className="flex-1 bg-gray-200 h-3 rounded-full overflow-hidden">
                               <div
-                                className={`h-3 rounded-full transition-all duration-500 ${
-                                  percent < 50
+                                className={`h-3 rounded-full transition-all duration-500 ${percent < 50
                                     ? "bg-gradient-to-r from-green-400 to-green-500"
                                     : percent < 80
                                       ? "bg-gradient-to-r from-amber-400 to-amber-500"
                                       : "bg-gradient-to-r from-red-400 to-red-500"
-                                }`}
+                                  }`}
                                 style={{ width: `${percent}%` }}
                               />
                             </div>
                             <span
-                              className={`text-sm font-medium min-w-[45px] ${
-                                percent < 50 ? "text-green-600" : percent < 80 ? "text-amber-600" : "text-red-600"
-                              }`}
+                              className={`text-sm font-medium min-w-[45px] ${percent < 50 ? "text-green-600" : percent < 80 ? "text-amber-600" : "text-red-600"
+                                }`}
                             >
                               {percent.toFixed(0)}%
                             </span>

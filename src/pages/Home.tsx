@@ -281,12 +281,9 @@ export default function HomePage() {
                       <div>
                         <p className="font-medium text-gray-800 text-sm">{t.note || t.title}</p>
                         <p className="text-xs text-gray-400">
-                          {new Date(t.date).toLocaleDateString("en-GB", {
-                            year: "numeric",
-                            month: "short",
-                            day: "2-digit",
-                          })}
+                          {new Date(t.date).toISOString().split("T")[0]}
                         </p>
+
                       </div>
                     </div>
 
@@ -412,7 +409,7 @@ export default function HomePage() {
             </div>
             <div className="text-center mt-4">
               <Link to="/budget" className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
-                View All Transactions
+                Manage Budgets
                 <ChevronsDown className="w-4 h-4 text-white" />
               </Link>
             </div>
