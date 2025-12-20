@@ -259,7 +259,7 @@ export default function TransactionsPage() {
       }
 
       const res = await createTransaction(obj)
-      console.log(res.data.message)
+      console.log(res.message)
       await loadAllTransaction()
 
       Swal.fire({
@@ -274,7 +274,7 @@ export default function TransactionsPage() {
       Swal.fire({
         icon: "error",
         title: "Save failed",
-        text: err?.response?.data?.message || "Something went wrong",
+        text: err,
       })
     }
   }
