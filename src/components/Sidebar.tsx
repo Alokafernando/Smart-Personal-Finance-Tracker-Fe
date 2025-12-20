@@ -1,29 +1,29 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import {
-  Home,
-  BarChartBig as ChartPie,
-  Layers,
-  BarChart3,
-  Tag,
-  Settings,
-  HelpCircle,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react"
-import { useAuth } from "../context/authContext"
+import { Home, BarChartBig as ChartPie, Layers, BarChart3, Tag, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, Sparkles, } from "lucide-react"
 import Swal from "sweetalert2"
+import { getUserDetails } from "../services/auth"
+import { useAuth } from "../context/authContext"
 
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user } = useAuth()
-
+  const { user: authUser, setUser } = useAuth()
+  const [user, setLocalUser] = useState(authUser)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const data = await getUserDetails()
+        setLocalUser(data.user)
+        setUser(data.user)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    if (!user) fetchUser()
+  }, [])
 
   const handleLogout = () => {
     Swal.fire({
@@ -61,32 +61,29 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`relative bg-gradient-to-b from-[#faf9f7] to-[#f5f3f0] flex flex-col justify-between shadow-xl border-r border-amber-100 transition-all duration-300 ${
-        sidebarCollapsed ? "w-20" : "w-72"
-      }`}
+      className={`relative bg-gradient-to-b from-[#faf9f7] to-[#f5f3f0] flex flex-col justify-between shadow-xl border-r border-amber-100 transition-all duration-300 ${sidebarCollapsed ? "w-20" : "w-72"
+        }`}
     >
-      {/* Decorative gradient accent */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600" />
 
       <div className="flex flex-col h-full">
-        {/* Header with user info */}
-        <div className="p-4 border-b border-amber-200/50">
+        <div className="p-4 border-b border-amber-200/50 relative">
           <div className="flex items-center gap-3">
-            {/* Profile picture with status indicator */}
             <div className="relative flex-shrink-0">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5">
                 <img
-                  src={user?.profilePic || "/placeholder.svg?height=48&width=48&query=user avatar"}
+                  src={user?.profileURL || "/assets/default-user.jpg"}
                   alt="User"
                   className="w-full h-full rounded-xl object-cover bg-[#faf9f7]"
                 />
+
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-[#faf9f7]" />
             </div>
 
             {!sidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-gray-800 text-base truncate">{user?.firstname || "User"}</h2>
+                <h2 className="font-semibold text-gray-800 text-base truncate">{user?.username || "User"}</h2>
                 <p className="text-amber-600 text-xs font-medium">{user?.role || "Personal Account"}</p>
               </div>
             )}
@@ -125,18 +122,15 @@ export default function Sidebar() {
             {menuItems.map((item) => {
               const Icon = item.icon
               const active = isActive(item.route)
-
               return (
                 <button
                   key={item.label}
                   onClick={() => navigate(item.route)}
-                  className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
-                    sidebarCollapsed ? "justify-center" : "text-left"
-                  } ${
-                    active
+                  className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${sidebarCollapsed ? "justify-center" : "text-left"
+                    } ${active
                       ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
                       : "text-gray-600 hover:bg-amber-50 hover:text-amber-700"
-                  }`}
+                    }`}
                   title={sidebarCollapsed ? item.label : undefined}
                 >
                   <Icon
@@ -160,47 +154,39 @@ export default function Sidebar() {
               {extraItems.map((item) => {
                 const Icon = item.icon
                 const active = isActive(item.route)
-
                 return (
                   <button
                     key={item.label}
                     onClick={() => navigate(item.route)}
-                    className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
-                      sidebarCollapsed ? "justify-center" : "text-left"
-                    } ${
-                      active
+                    className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${sidebarCollapsed ? "justify-center" : "text-left"
+                      } ${active
                         ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
                         : "text-gray-600 hover:bg-amber-50 hover:text-amber-700"
-                    }`}
+                      }`}
                     title={sidebarCollapsed ? item.label : undefined}
                   >
                     <Icon
                       size={20}
-                      className={`flex-shrink-0 transition-transform duration-200 ${
-                        !active && "group-hover:scale-110"
-                      }`}
+                      className={`flex-shrink-0 transition-transform duration-200 ${!active && "group-hover:scale-110"}`}
                     />
                     {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
                   </button>
                 )
               })}
+
+              {/* Logout button below Help */}
+              <button
+                onClick={handleLogout}
+                className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-gray-500 hover:bg-red-50 hover:text-red-500 ${sidebarCollapsed ? "justify-center" : "text-left"
+                  }`}
+                title={sidebarCollapsed ? "Log Out" : undefined}
+              >
+                <LogOut size={20} className="flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
+                {!sidebarCollapsed && <span className="text-sm font-medium">Log Out</span>}
+              </button>
             </div>
           </div>
         </nav>
-
-        {/* Logout button at bottom */}
-        <div className="p-3 border-t border-amber-200/50">
-          <button
-            onClick={handleLogout}
-            className={`group flex items-center gap-3 w-full px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 text-gray-500 hover:bg-red-50 hover:text-red-500 ${
-              sidebarCollapsed ? "justify-center" : "text-left"
-            }`}
-            title={sidebarCollapsed ? "Log Out" : undefined}
-          >
-            <LogOut size={20} className="flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
-            {!sidebarCollapsed && <span className="text-sm font-medium">Log Out</span>}
-          </button>
-        </div>
       </div>
     </aside>
   )
