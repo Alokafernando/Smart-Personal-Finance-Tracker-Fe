@@ -24,7 +24,6 @@ export default function Login() {
         title: "Oops...",
         text: "All fields are required!",
         confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
       })
       return
     }
@@ -34,41 +33,46 @@ export default function Login() {
     try {
       const res = await login(email, password)
 
-      if (!res.data.accessToken) {
-        Swal.fire({
-          icon: "error",
-          title: "Login Failed",
-          text: "Invalid email or password.",
-          confirmButtonColor: "#3085d6",
-          confirmButtonText: "OK",
-        })
-        setLoading(false)
-        return
+      const { accessToken, refreshToken } = res.data || {}
+
+      if (!accessToken) {
+        throw new Error("Invalid email or password")
       }
 
-      localStorage.setItem("accessToken", res.data.accessToken)
-      localStorage.setItem("refreshToken", res.data.refreshToken)
+      localStorage.setItem("accessToken", accessToken)
+      localStorage.setItem("refreshToken", refreshToken)
 
-      const detail = await getUserDetails()
-      setUser(detail.data)
+      const detailRes = await getUserDetails()
+      const user = detailRes.data?.user || detailRes.data
 
-      navigate("/home")
+      if (!user) throw new Error("Failed to fetch user details")
+
+      setUser(user)
+
+      const isAdmin = Array.isArray(user.role) && user.role.includes("ADMIN")
+
+      if (isAdmin) {
+        navigate("/admin/home", { replace: true })
+      } else {
+        navigate("/home", { replace: true })
+      }
+
+
     } catch (err: any) {
       console.error(err)
-
-      const message = err?.response?.data?.message || "Invalid credentials. Please try again."
 
       Swal.fire({
         icon: "error",
         title: "Login Failed",
-        text: message,
+        text: err?.response?.data?.message || err?.message || "Invalid credentials. Please try again.",
         confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
       })
     } finally {
       setLoading(false)
     }
   }
+
+
 
   return (
     <div className="min-h-screen w-full flex">

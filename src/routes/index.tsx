@@ -14,6 +14,9 @@ const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
 const Budget = lazy(() => import("../pages/Budget"))
 const Categories = lazy(() => import("../pages/Categories"))
 
+const AdminHome = lazy(() => import("../pages/Admin/Home"))
+
+
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
 
@@ -33,8 +36,7 @@ const RequireAuth = ({ children, roles }: RequireAuthTypes) => {
     return <Navigate to="/login" replace />
   }
 
-
-  if (roles && !roles.some((role) => user.roles?.includes(role))) {
+  if (roles && !roles.some((role) => user.role?.includes(role))) {
     return (
       <div className="text-center py-20">
         <h2 className="text-xl font-bold mb-2">Access denied</h2>
@@ -76,17 +78,17 @@ export default function Router() {
             <Route path="/budget" element={<Budget />} />
             <Route path="/categories" element={<Categories />} />
 
+          </Route>
 
+          <Route
+            element={
+              <RequireAuth roles={["ADMIN"]}>
+                <Layout />
+              </RequireAuth>
+            }
+          >
+            <Route path="/admin/home" element={<AdminHome />} />
 
-            {/* <Route path="/post" element={<Post />} /> */}
-            {/* <Route
-              path="/my-post"
-              element={
-                <RequireAuth roles={["ADMIN", "AUTHOR"]}>
-                  <MyPost />
-                </RequireAuth>
-              }
-            /> */}
           </Route>
 
         </Routes>
