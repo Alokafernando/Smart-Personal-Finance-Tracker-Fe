@@ -372,20 +372,20 @@ export default function Welcome() {
                         color: "bg-purple-100 text-purple-600",
                       },
                       { name: "OCR Scanned", amount: "-$89.99", icon: Camera, color: "bg-blue-100 text-blue-600" },
-                    ].map((tx, i) => (
+                    ].map((t, i) => (
                       <div
                         key={i}
                         className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-8 h-8 rounded-lg ${tx.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                            className={`w-8 h-8 rounded-lg ${t.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
                           >
-                            <tx.icon className="w-4 h-4" />
+                            <t.icon className="w-4 h-4" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700">{tx.name}</span>
+                          <span className="text-sm font-medium text-gray-700">{t.name}</span>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900">{tx.amount}</span>
+                        <span className="text-sm font-semibold text-gray-900">{t.amount}</span>
                       </div>
                     ))}
                   </div>

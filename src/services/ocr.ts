@@ -18,8 +18,8 @@ export type OCRResponse = {
 }
 
 export const uploadReceiptOCR = async (file: File) => {
-  const formData = new FormData();
-  formData.append("receipt", file); // ✅ must match backend
+  const formData = new FormData()
+  formData.append("receipt", file)
 
   const res = await api.post<OCRResponse>(
     "/ocr/receipt",
@@ -29,7 +29,7 @@ export const uploadReceiptOCR = async (file: File) => {
         "Content-Type": "multipart/form-data",
       },
     }
-  );
+  )
 
-  return res.data;
+  return res.data
 }

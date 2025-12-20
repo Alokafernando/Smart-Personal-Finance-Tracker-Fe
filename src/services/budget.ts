@@ -14,7 +14,7 @@ export const getAllBudgets = async () => {
   return res.data
 }
 
-export const addBudget = async (data: any) => {
+export const addBudget = async (data: Budget) => {
   const res = await api.post("/budget/", data)
   return res.data
 }
