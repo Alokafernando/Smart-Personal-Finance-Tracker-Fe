@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react"
-import axios from "axios"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, } from "recharts"
 import { PlusCircle, FileText, ArrowUpCircle, ArrowDownCircle, Wallet, TrendingUp, CreditCard, PiggyBank, Target, Bell, Settings, LogOut, ChevronsDown } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { getLatestTransaction } from "../services/transaction"
 import { getLatestBudgets } from "../services/budget"
 import { getBalanceTrend } from "../services/analytics"
+import Swal from "sweetalert2"
 
 const COLORS = ["#F59E0B", "#22C55E", "#F97316", "#EF4444"]
 
@@ -14,53 +14,61 @@ export default function HomePage() {
   const [budgets, setBudgets] = useState<any[]>([])
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
 
   useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true)
-    try {
-      const [txRes, catRes, chartRes] = await Promise.all([
-        getLatestTransaction(),
-        getLatestBudgets(),
-        getBalanceTrend(), // returns array
-      ])
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const [txRes, catRes, chartRes] = await Promise.all([
+          getLatestTransaction(),
+          getLatestBudgets(),
+          getBalanceTrend(), // returns array
+        ])
 
-      const transactionsData = Array.isArray(txRes)
-        ? txRes
-        : Array.isArray(txRes?.data)
-          ? txRes.data
-          : []
-
-      const budgetsData =
-        Array.isArray(catRes?.budgets)
-          ? catRes.budgets
-          : Array.isArray(catRes?.data?.budgets)
-            ? catRes.data.budgets
+        const transactionsData = Array.isArray(txRes)
+          ? txRes
+          : Array.isArray(txRes?.data)
+            ? txRes.data
             : []
 
-      // ✅ chartRes is already the array
-      const chartDataRes = Array.isArray(chartRes) ? chartRes : []
+        const budgetsData =
+          Array.isArray(catRes?.budgets)
+            ? catRes.budgets
+            : Array.isArray(catRes?.data?.budgets)
+              ? catRes.data.budgets
+              : []
 
-      setTransactions(transactionsData)
-      setBudgets(budgetsData)
-      setChartData(chartDataRes)
-    } catch (err) {
-      console.error("Failed to load dashboard data", err)
-    } finally {
-      setLoading(false)
+        // ✅ chartRes is already the array
+        const chartDataRes = Array.isArray(chartRes) ? chartRes : []
+
+        setTransactions(transactionsData)
+        setBudgets(budgetsData)
+        setChartData(chartDataRes)
+      } catch (err) {
+        console.error("Failed to load dashboard data", err)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
-  fetchData()
-}, [])
+    fetchData()
+  }, [])
 
   const totals = useMemo(() => {
     if (!Array.isArray(transactions)) return { income: 0, expense: 0, balance: 0 }
 
-    const income = transactions.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0)
-    const expense = transactions.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0)
+    const income = transactions
+      .filter(t => t.type === "INCOME")
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0)
+
+    const expense = transactions
+      .filter(t => t.type === "EXPENSE")
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0)
 
     return { income, expense, balance: income - expense }
   }, [transactions])
+
 
   const pieData = budgets.map(b => ({ name: b.category_id?.name, value: b.spent, }))
 
@@ -70,6 +78,25 @@ export default function HomePage() {
         Loading dashboard...
       </div>
     )
+  }
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to logout?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f59e0b",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, logout",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
+        navigate("/login")
+      }
+    })
   }
 
   return (
@@ -99,10 +126,10 @@ export default function HomePage() {
             <button className="p-2.5 bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-xl hover:bg-amber-50 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
               <Bell className="w-5 h-5 text-amber-600" />
             </button>
-            <button className="p-2.5 bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-xl hover:bg-amber-50 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
+            <button onClick={() => navigate("/settings")} className="p-2.5 bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-xl hover:bg-amber-50 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
               <Settings className="w-5 h-5 text-amber-600" />
             </button>
-            <button className="p-2.5 bg-white/80 backdrop-blur-sm border border-red-200/50 rounded-xl hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
+            <button onClick={handleLogout} className="p-2.5 bg-white/80 backdrop-blur-sm border border-red-200/50 rounded-xl hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105">
               <LogOut className="w-5 h-5 text-red-500" />
             </button>
           </div>
@@ -164,16 +191,16 @@ export default function HomePage() {
 
         {/* Quick Actions */}
         <section className="flex flex-wrap gap-3 mb-8">
-          <button className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] flex items-center gap-2 transition-all duration-200 font-medium">
-            <PlusCircle size={18} /> Add Income
+          <button
+            onClick={() => navigate("/transactions")}
+            className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] flex items-center gap-2 transition-all duration-200 font-medium"
+          >
+            <PlusCircle size={18} /> Add Transaction
           </button>
-          <button className="px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] flex items-center gap-2 transition-all duration-200 font-medium">
-            <PlusCircle size={18} /> Add Expense
-          </button>
-          <button className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] flex items-center gap-2 transition-all duration-200 font-medium">
+          <button onClick={() => navigate("/analytics")} className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] flex items-center gap-2 transition-all duration-200 font-medium">
             <FileText size={18} /> Reports
           </button>
-          <button className="px-5 py-2.5 bg-white/80 backdrop-blur-sm border border-amber-200 text-amber-700 rounded-xl shadow-md hover:shadow-lg hover:bg-amber-50 flex items-center gap-2 transition-all duration-200 font-medium">
+          <button onClick={() => navigate("/budget")} className="px-5 py-2.5 bg-white/80 backdrop-blur-sm border border-amber-200 text-amber-700 rounded-xl shadow-md hover:shadow-lg hover:bg-amber-50 flex items-center gap-2 transition-all duration-200 font-medium">
             <Target size={18} /> Set Budget
           </button>
         </section>
@@ -300,7 +327,7 @@ export default function HomePage() {
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={pieData || []} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
-                    {pieData?.map((entry, index) => (
+                    {pieData?.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -352,10 +379,10 @@ export default function HomePage() {
 
                       <p
                         className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isOverBudget
-                            ? "bg-red-100 text-red-600"
-                            : usedPercent > 80
-                              ? "bg-amber-100 text-amber-600"
-                              : "bg-green-100 text-green-600"
+                          ? "bg-red-100 text-red-600"
+                          : usedPercent > 80
+                            ? "bg-amber-100 text-amber-600"
+                            : "bg-green-100 text-green-600"
                           }`}
                       >
                         {usedPercent.toFixed(0)}%
@@ -365,10 +392,10 @@ export default function HomePage() {
                     <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-3 rounded-full transition-all duration-500 ${isOverBudget
-                            ? "bg-gradient-to-r from-red-400 to-red-500"
-                            : usedPercent > 80
-                              ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                              : "bg-gradient-to-r from-green-400 to-emerald-500"
+                          ? "bg-gradient-to-r from-red-400 to-red-500"
+                          : usedPercent > 80
+                            ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                            : "bg-gradient-to-r from-green-400 to-emerald-500"
                           }`}
                         style={{ width: `${usedPercent}%` }}
                       />
