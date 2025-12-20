@@ -31,6 +31,11 @@ export type AnalyticsFilter = {
   category?: string
 }
 
+export type BalanceTrend = {
+  month: number
+  balance: number
+}
+
 
 export const getAnalyticsSummary = async () => {
   const res = await api.get<AnalyticsSummary>("/analytics/summary")
@@ -48,7 +53,7 @@ export const getCategoryAnalytics = async () => {
   return res.data
 }
 
-export const getAnalytics = async (filter?: AnalyticsFilter) => {
+export const getAnalytics = async (filter?: any) => {
   const res = await api.post<AnalyticsResponse>("/analytics/filter", filter || {})
   return res.data
 }
@@ -58,9 +63,14 @@ export const downloadAnalyticsPDF = async (filter?: AnalyticsFilter) => {
     "/analytics/export/pdf",
     filter || {},
     {
-      responseType: "blob", // 🔥 IMPORTANT
+      responseType: "blob", 
     }
   )
 
+  return res.data
+}
+
+export const getBalanceTrend = async (): Promise<BalanceTrend[]> => {
+  const res = await api.get<BalanceTrend[]>("/analytics/balance-trend")
   return res.data
 }

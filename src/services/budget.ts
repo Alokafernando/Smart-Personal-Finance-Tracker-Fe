@@ -14,7 +14,7 @@ export const getAllBudgets = async () => {
   return res.data
 }
 
-export const addBudget = async (data: Budget) => {
+export const addBudget = async (data: any) => {
   const res = await api.post("/budget/", data)
   return res.data
 }
@@ -26,5 +26,10 @@ export const updateBudget = async (budgetId: string, body: any) => {
 
 export const deleteBudget = async (budgetId: string) => {
   const res = await api.delete(`/budget/${budgetId}`)
+  return res.data
+}
+
+export const getLatestBudgets = async () => {
+  const res = await api.get("/budget/latest/")
   return res.data
 }

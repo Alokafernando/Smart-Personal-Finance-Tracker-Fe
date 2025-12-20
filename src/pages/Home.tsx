@@ -1,83 +1,57 @@
-"use client"
-
 import { useEffect, useMemo, useState } from "react"
 import axios from "axios"
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts"
-import {
-  PlusCircle,
-  FileText,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Wallet,
-  TrendingUp,
-  CreditCard,
-  PiggyBank,
-  Target,
-  Bell,
-  Settings,
-  LogOut,
-  ChevronRight,
-} from "lucide-react"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, } from "recharts"
+import { PlusCircle, FileText, ArrowUpCircle, ArrowDownCircle, Wallet, TrendingUp, CreditCard, PiggyBank, Target, Bell, Settings, LogOut, ChevronsDown } from "lucide-react"
 import { Link } from "react-router-dom"
 import { getLatestTransaction } from "../services/transaction"
-import { getAllCategories } from "../services/category"
+import { getLatestBudgets } from "../services/budget"
+import { getBalanceTrend } from "../services/analytics"
 
 const COLORS = ["#F59E0B", "#22C55E", "#F97316", "#EF4444"]
 
 export default function HomePage() {
   const [transactions, setTransactions] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
+  const [budgets, setBudgets] = useState<any[]>([])
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadLatestTransactions = async () => {
+  useEffect(() => {
+  const fetchData = async () => {
     setLoading(true)
     try {
       const [txRes, catRes, chartRes] = await Promise.all([
         getLatestTransaction(),
-        getAllCategories(),
-        axios.get("/api/chart-data"),
+        getLatestBudgets(),
+        getBalanceTrend(), // returns array
       ])
 
-      const latestTransactions = Array.isArray(txRes)
+      const transactionsData = Array.isArray(txRes)
         ? txRes
         : Array.isArray(txRes?.data)
           ? txRes.data
           : []
 
-      const categoriesData = Array.isArray(catRes)
-        ? catRes
-        : Array.isArray(catRes?.data)
-          ? catRes.data
-          : []
+      const budgetsData =
+        Array.isArray(catRes?.budgets)
+          ? catRes.budgets
+          : Array.isArray(catRes?.data?.budgets)
+            ? catRes.data.budgets
+            : []
 
-      const chartDataRes = Array.isArray(chartRes?.data) ? chartRes.data : []
+      // ✅ chartRes is already the array
+      const chartDataRes = Array.isArray(chartRes) ? chartRes : []
 
-      setTransactions(latestTransactions)
-      setCategories(categoriesData)
+      setTransactions(transactionsData)
+      setBudgets(budgetsData)
       setChartData(chartDataRes)
     } catch (err) {
-      console.error("Failed to load latest transactions", err)
+      console.error("Failed to load dashboard data", err)
     } finally {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    loadLatestTransactions()
-  }, [])
+  fetchData()
+}, [])
 
   const totals = useMemo(() => {
     if (!Array.isArray(transactions)) return { income: 0, expense: 0, balance: 0 }
@@ -88,7 +62,7 @@ export default function HomePage() {
     return { income, expense, balance: income - expense }
   }, [transactions])
 
-  const pieData = categories?.map(c => ({ name: c.category, value: c.amount })) || []
+  const pieData = budgets.map(b => ({ name: b.category_id?.name, value: b.spent, }))
 
   if (loading) {
     return (
@@ -213,11 +187,6 @@ export default function HomePage() {
                 <TrendingUp className="w-5 h-5 text-amber-500" />
                 Balance Trend
               </h3>
-              <select className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                <option>Last 7 months</option>
-                <option>Last 12 months</option>
-                <option>This year</option>
-              </select>
             </div>
             <div className="h-72">
               <ResponsiveContainer>
@@ -261,7 +230,7 @@ export default function HomePage() {
             </h3>
 
             <div className="space-y-3">
-              {transactions?.slice(0, 5)?.map((t, index) => {
+              {transactions?.map((t, index) => {
                 const isIncome = t.type === "INCOME"
                 const amountValue = Number(t.amount) || 0
 
@@ -285,11 +254,12 @@ export default function HomePage() {
                       <div>
                         <p className="font-medium text-gray-800 text-sm">{t.note || t.title}</p>
                         <p className="text-xs text-gray-400">
-                          {`${new Date(t.date).getFullYear()}-${String(
-                            new Date(t.date).getMonth() + 1
-                          ).padStart(2, "0")}-${String(new Date(t.date).getDate()).padStart(2, "0")}`}
+                          {new Date(t.date).toLocaleDateString("en-GB", {
+                            year: "numeric",
+                            month: "short",
+                            day: "2-digit",
+                          })}
                         </p>
-
                       </div>
                     </div>
 
@@ -306,14 +276,13 @@ export default function HomePage() {
               })}
             </div>
 
-
             <div className="text-center mt-4">
               <Link
                 to="/transactions"
-                className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-medium text-sm group"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
               >
                 View All Transactions
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ChevronsDown className="w-4 h-4 text-white" />
               </Link>
             </div>
           </div>
@@ -361,44 +330,63 @@ export default function HomePage() {
               Budget Progress
             </h4>
             <div className="space-y-4">
-              {categories?.map((c, index) => {
-                const usedPercent = Math.min((c.amount / c.target) * 100, 100)
-                const isOverBudget = c.amount > c.target
+              {budgets.map((b, index) => {
+                const usedPercent = Math.min((b.spent / b.amount) * 100, 100)
+                const isOverBudget = b.spent > b.amount
+
                 return (
-                  <div key={c.category} className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200">
+                  <div
+                    key={b._id}
+                    className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200"
+                  >
                     <div className="flex justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                        <p className="font-medium text-gray-700">{c.category}</p>
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <p className="font-medium text-gray-700">
+                          {b.category_id?.name}
+                        </p>
                       </div>
-                      <p className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isOverBudget ? "bg-red-100 text-red-600" : usedPercent > 80 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"
-                        }`}>
+
+                      <p
+                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isOverBudget
+                            ? "bg-red-100 text-red-600"
+                            : usedPercent > 80
+                              ? "bg-amber-100 text-amber-600"
+                              : "bg-green-100 text-green-600"
+                          }`}
+                      >
                         {usedPercent.toFixed(0)}%
                       </p>
                     </div>
+
                     <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className={`h-3 rounded-full transition-all duration-500 ${isOverBudget
-                          ? "bg-gradient-to-r from-red-400 to-red-500"
-                          : usedPercent > 80
-                            ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                            : "bg-gradient-to-r from-green-400 to-emerald-500"
+                            ? "bg-gradient-to-r from-red-400 to-red-500"
+                            : usedPercent > 80
+                              ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                              : "bg-gradient-to-r from-green-400 to-emerald-500"
                           }`}
                         style={{ width: `${usedPercent}%` }}
                       />
                     </div>
+
                     <div className="mt-2 flex justify-between text-sm text-gray-500">
-                      <span>Rs {c.amount.toLocaleString()}</span>
-                      <span>Rs {c.target.toLocaleString()}</span>
+                      <span>Rs {b.spent.toLocaleString()}</span>
+                      <span>Rs {b.amount.toLocaleString()}</span>
                     </div>
                   </div>
                 )
               })}
+
             </div>
             <div className="text-center mt-4">
-              <Link to="/categories" className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-medium text-sm group">
-                Manage Budgets
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <Link to="/budget" className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                View All Transactions
+                <ChevronsDown className="w-4 h-4 text-white" />
               </Link>
             </div>
           </div>
