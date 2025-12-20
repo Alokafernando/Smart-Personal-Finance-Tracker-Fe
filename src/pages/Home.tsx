@@ -31,7 +31,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { Link } from "react-router-dom"
-import { getAllTransactions } from "../services/transaction"
+import { getLatestTransaction } from "../services/transaction"
 import { getAllCategories } from "../services/category"
 
 const COLORS = ["#F59E0B", "#22C55E", "#F97316", "#EF4444"]
@@ -42,44 +42,42 @@ export default function HomePage() {
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const [txRes, catRes, chartRes] = await Promise.all([
-          getAllTransactions(),
-          getAllCategories(),
-          axios.get("/api/chart-data"),
-        ])
+  const loadLatestTransactions = async () => {
+    setLoading(true)
+    try {
+      const [txRes, catRes, chartRes] = await Promise.all([
+        getLatestTransaction(),
+        getAllCategories(),
+        axios.get("/api/chart-data"),
+      ])
 
-        // Normalize data
-        const transactionsData = Array.isArray(txRes)
-          ? txRes
-          : Array.isArray(txRes?.data)
-            ? txRes.data
-            : []
+      const latestTransactions = Array.isArray(txRes)
+        ? txRes
+        : Array.isArray(txRes?.data)
+          ? txRes.data
+          : []
 
-        const categoriesData = Array.isArray(catRes)
-          ? catRes
-          : Array.isArray(catRes?.data)
-            ? catRes.data
-            : []
+      const categoriesData = Array.isArray(catRes)
+        ? catRes
+        : Array.isArray(catRes?.data)
+          ? catRes.data
+          : []
 
-        const chartDataRes = Array.isArray(chartRes?.data) ? chartRes.data : []
+      const chartDataRes = Array.isArray(chartRes?.data) ? chartRes.data : []
 
-        setTransactions(transactionsData)
-        setCategories(categoriesData)
-        setChartData(chartDataRes)
-      } catch (err) {
-        console.error("Failed to load dashboard data", err)
-      } finally {
-        setLoading(false)
-      }
+      setTransactions(latestTransactions)
+      setCategories(categoriesData)
+      setChartData(chartDataRes)
+    } catch (err) {
+      console.error("Failed to load latest transactions", err)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    fetchData()
+  useEffect(() => {
+    loadLatestTransactions()
   }, [])
-
 
   const totals = useMemo(() => {
     if (!Array.isArray(transactions)) return { income: 0, expense: 0, balance: 0 }
@@ -89,7 +87,6 @@ export default function HomePage() {
 
     return { income, expense, balance: income - expense }
   }, [transactions])
-
 
   const pieData = categories?.map(c => ({ name: c.category, value: c.amount })) || []
 

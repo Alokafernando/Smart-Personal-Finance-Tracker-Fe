@@ -29,6 +29,10 @@ const categoryColors: Record<string, { bg: string; text: string; icon: string }>
 export default function TransactionsPage() {
   const [search, setSearch] = useState("")
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+
+
   const [categories, setCategories] = useState<{
     [x: string]: string
     _id: string,
@@ -63,10 +67,12 @@ export default function TransactionsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
-  const loadAllTransaction = async () => {
+  const loadAllTransaction = async (page = 1) => {
     try {
-      const data = await getAllTransactions()
-      setTransactions(data)
+      const data = await getAllTransactions(page, 10)
+      setTransactions(data.transactions)
+      setCurrentPage(data.page)
+      setTotalPages(data.totalPages)
     } catch (err) {
       console.error(err)
     }
@@ -90,7 +96,6 @@ export default function TransactionsPage() {
   const filteredTx = transactions.filter((t) =>
     (t.note || "").toLowerCase().includes(search.toLowerCase())
   )
-
 
   const handleAddManualTransaction = async () => {
     if (!newTransaction.title) {
@@ -171,8 +176,6 @@ export default function TransactionsPage() {
     }
   }
 
-
-
   const handleDelete = async (transactionId: string) => {
     try {
       const result = await Swal.fire({
@@ -216,14 +219,14 @@ export default function TransactionsPage() {
 
     try {
       const res = await uploadReceiptOCR(file)
-      const tx = res.transaction
+      const obj = res.transaction
 
       setOcrResult({
-        merchant: tx.merchant || "Unknown",
-        amount: tx.amount?.toString() || "0",
-        date: tx.date || new Date().toISOString().split("T")[0],
-        category: tx.ai_category || "Other",
-        aiSuggested: !!tx.ai_category,
+        merchant: obj.merchant || "Unknown",
+        amount: obj.amount?.toString() || "0",
+        date: obj.date || new Date().toISOString().split("T")[0],
+        category: obj.ai_category || "Other",
+        aiSuggested: !!obj.ai_category,
       })
 
       setOcrStep("review")
@@ -287,17 +290,16 @@ export default function TransactionsPage() {
   }
 
   const handleUpdate = (id: string) => {
-    const tx = transactions.find((t) => t._id === id)
-    if (!tx) return
+    const obj = transactions.find((t) => t._id === id)
+    if (!obj) return
 
     setEditingTransaction({
-      ...tx,
-      amount: Math.abs(tx.amount), // make sure amount is positive for editing
+      ...obj,
+      amount: Math.abs(obj.amount),
     })
     setShowEditModal(true)
   }
 
-  //  update transaction
   const handleSaveUpdate = async () => {
     if (!editingTransaction) return
 
@@ -564,10 +566,29 @@ export default function TransactionsPage() {
             <span className="font-medium text-gray-700">{transactions.length}</span> transactions
           </p>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-amber-50 hover:border-amber-200 transition-all">
+            <button
+              className={`px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-amber-50 hover:border-amber-200 transition-all ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              disabled={currentPage === 1}
+              onClick={() => {
+                if (currentPage > 1) loadAllTransaction(currentPage - 1);
+              }}
+            >
               Previous
             </button>
-            <button className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all">
+
+            <span className="px-3 py-1.5 text-sm text-gray-700">
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <button
+              className={`px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium hover:from-amber-600 hover:to-orange-600 transition-all ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              disabled={currentPage === totalPages}
+              onClick={() => {
+                if (currentPage < totalPages) loadAllTransaction(currentPage + 1);
+              }}
+            >
               Next
             </button>
           </div>

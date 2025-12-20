@@ -13,12 +13,12 @@ export type Transaction = {
     ai_category?: string
 }
 
-export const getAllTransactions = async () => {
-  const res = await api.get("/transactions/")
+export const getAllTransactions = async (page: number, limit: number) => {
+  const res = await api.get(`/transactions?page=${page}&limit=${limit}`)
   return res.data
 }
 
-export const createTransaction = async (data: Partial<Transaction>) => {
+export const createTransaction = async (data: any) => {
   const res = await api.post("/transactions/", data)
   return res.data
 }
@@ -30,5 +30,10 @@ export const updateTransaction = async ( transactionId: string,  body: any ) => 
 
 export const deleteTransaction = async (transactionId: string) => {
   const res = await api.delete(`/transactions/${transactionId}`)
+  return res.data
+}
+
+export const getLatestTransaction = async () => {
+  const res = await api.get("/transactions/latest")
   return res.data
 }
