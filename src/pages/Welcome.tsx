@@ -1,34 +1,4 @@
-"use client"
-
-import {
-  Wallet,
-  TrendingUp,
-  Shield,
-  Zap,
-  ArrowRight,
-  PieChart,
-  Receipt,
-  Sparkles,
-  Menu,
-  FileText,
-  Brain,
-  Camera,
-  CheckCircle2,
-  X,
-  Star,
-  Users,
-  BarChart3,
-  Download,
-  Lock,
-  ChevronRight,
-  Play,
-  Clock,
-  Smartphone,
-  Globe,
-  HeartHandshake,
-  ArrowDown,
-  Check,
-} from "lucide-react"
+import {  Wallet, TrendingUp, Shield, Zap, ArrowRight, PieChart,  Receipt, Sparkles, Menu,  FileText, Brain, Camera,  CheckCircle2, X,  Star,  Users, BarChart3, Download,  Lock, ChevronRight,  Play, Clock, Smartphone, Globe, HeartHandshake, ArrowDown,  Check, } from "lucide-react"
 import { useState, useEffect } from "react"
 
 export default function Welcome() {

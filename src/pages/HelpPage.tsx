@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Mail, MessageCircle, HelpCircle, Info, Bot, ChevronDown, ChevronUp, Send, Book, Video, FileText, ExternalLink,  Clock,  CheckCircle, Search, Sparkles, X, } from "lucide-react"
