@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
+import axios from "axios"
 import {
   LineChart,
   Line,
@@ -30,50 +31,79 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { Link } from "react-router-dom"
-
-const chartData = [
-  { month: "Jan", balance: 800 },
-  { month: "Feb", balance: 950 },
-  { month: "Mar", balance: 700 },
-  { month: "Apr", balance: 1250 },
-  { month: "May", balance: 900 },
-  { month: "Jun", balance: 1100 },
-  { month: "Jul", balance: 1450 },
-]
-
-const categories = [
-  { category: "Food", amount: 14000, target: 15000 },
-  { category: "Bills", amount: 16500, target: 18000 },
-  { category: "Shopping", amount: 8000, target: 10000 },
-  { category: "Fuel", amount: 7000, target: 9000 },
-]
+import { getAllTransactions } from "../services/transaction"
+import { getAllCategories } from "../services/category"
 
 const COLORS = ["#F59E0B", "#22C55E", "#F97316", "#EF4444"]
 
 export default function HomePage() {
-  const transactions = [
-    { id: 1, title: "Salary - Nov", amount: 2500, type: "income", date: "2025-11-28" },
-    { id: 2, title: "Electricity Bill", amount: -85.3, type: "expense", date: "2025-11-26" },
-    { id: 3, title: "Freelance Payment", amount: 600, type: "income", date: "2025-11-23" },
-    { id: 4, title: "Grocery Shopping", amount: -125.8, type: "expense", date: "2025-11-22" },
-    { id: 5, title: "Internet Bill", amount: -75.5, type: "expense", date: "2025-11-21" },
-    { id: 6, title: "Bonus", amount: 1000, type: "income", date: "2025-11-20" },
-  ]
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [chartData, setChartData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const [txRes, catRes, chartRes] = await Promise.all([
+          getAllTransactions(),
+          getAllCategories(),
+          axios.get("/api/chart-data"),
+        ])
+
+        // Normalize data
+        const transactionsData = Array.isArray(txRes)
+          ? txRes
+          : Array.isArray(txRes?.data)
+            ? txRes.data
+            : []
+
+        const categoriesData = Array.isArray(catRes)
+          ? catRes
+          : Array.isArray(catRes?.data)
+            ? catRes.data
+            : []
+
+        const chartDataRes = Array.isArray(chartRes?.data) ? chartRes.data : []
+
+        setTransactions(transactionsData)
+        setCategories(categoriesData)
+        setChartData(chartDataRes)
+      } catch (err) {
+        console.error("Failed to load dashboard data", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
 
   const totals = useMemo(() => {
-    const income = transactions.filter((t) => t.amount > 0).reduce((a, b) => a + b.amount, 0)
-    const expense = transactions.filter((t) => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0)
+    if (!Array.isArray(transactions)) return { income: 0, expense: 0, balance: 0 }
+
+    const income = transactions.filter(t => t.amount > 0).reduce((a, b) => a + b.amount, 0)
+    const expense = transactions.filter(t => t.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0)
+
     return { income, expense, balance: income - expense }
   }, [transactions])
 
-  const pieData = categories.map((c) => ({
-    name: c.category,
-    value: c.amount,
-  }))
+
+  const pieData = categories?.map(c => ({ name: c.category, value: c.amount })) || []
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-amber-600 font-bold text-xl">
+        Loading dashboard...
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
-      {/* Decorative Background Elements */}
+      {/* Decorative Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-3xl" />
         <div className="absolute top-1/2 -left-40 w-96 h-96 bg-gradient-to-br from-yellow-400/15 to-amber-500/15 rounded-full blur-3xl" />
@@ -109,7 +139,7 @@ export default function HomePage() {
 
         {/* Totals Cards */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          {/* Income Card */}
+          {/* Income */}
           <div className="group relative bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex justify-between items-start">
@@ -126,7 +156,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Expense Card */}
+          {/* Expense */}
           <div className="group relative bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex justify-between items-start">
@@ -143,7 +173,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Balance Card */}
+          {/* Balance */}
           <div className="group relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex justify-between items-start">
@@ -177,9 +207,9 @@ export default function HomePage() {
           </button>
         </section>
 
-        {/* Charts & Recent Transactions */}
+        {/* Charts & Transactions */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Balance Trend */}
+          {/* Line Chart */}
           <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
@@ -194,7 +224,7 @@ export default function HomePage() {
             </div>
             <div className="h-72">
               <ResponsiveContainer>
-                <LineChart data={chartData}>
+                <LineChart data={chartData || []}>
                   <CartesianGrid strokeDasharray="4 4" stroke="#f3f4f6" />
                   <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
                   <YAxis stroke="#9ca3af" fontSize={12} />
@@ -232,31 +262,54 @@ export default function HomePage() {
               <CreditCard className="w-5 h-5 text-amber-500" />
               Recent Transactions
             </h3>
+
             <div className="space-y-3">
-              {transactions.slice(0, 5).map((t) => (
-                <div
-                  key={t.id}
-                  className="flex justify-between items-center p-3 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${t.amount > 0 ? "bg-green-100" : "bg-red-100"}`}>
-                      {t.amount > 0 ? (
-                        <ArrowUpCircle className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <ArrowDownCircle className="w-4 h-4 text-red-500" />
-                      )}
+              {transactions?.slice(0, 5)?.map((t, index) => {
+                const isIncome = t.type === "INCOME"
+                const amountValue = Number(t.amount) || 0
+
+                return (
+                  <div
+                    key={t.id ? t.id : `tx-${index}`}
+                    className="flex justify-between items-center p-3 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-9 h-9 flex items-center justify-center rounded-full ${isIncome ? "p-2 rounded-lg bg-green-100" : "p-2 rounded-lg bg-red-100"
+                          }`}
+                      >
+                        {isIncome ? (
+                          <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <ArrowDownCircle className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm">{t.note || t.title}</p>
+                        <p className="text-xs text-gray-400">
+                          {`${new Date(t.date).getFullYear()}-${String(
+                            new Date(t.date).getMonth() + 1
+                          ).padStart(2, "0")}-${String(new Date(t.date).getDate()).padStart(2, "0")}`}
+                        </p>
+
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-700 text-sm">{t.title}</p>
-                      <p className="text-xs text-gray-400">{t.date}</p>
-                    </div>
+
+                    <p
+                      className={`font-semibold text-sm ${isIncome ? "text-green-600" : "text-red-500"
+                        }`}
+                    >
+                      {isIncome
+                        ? `+Rs ${amountValue.toFixed(2)}`
+                        : `-Rs ${amountValue.toFixed(2)}`}
+                    </p>
                   </div>
-                  <p className={`font-semibold text-sm ${t.amount > 0 ? "text-green-600" : "text-red-500"}`}>
-                    {t.amount > 0 ? `+Rs ${t.amount.toFixed(2)}` : `-Rs ${Math.abs(t.amount).toFixed(2)}`}
-                  </p>
-                </div>
-              ))}
+                )
+              })}
             </div>
+
+
             <div className="text-center mt-4">
               <Link
                 to="/transactions"
@@ -269,8 +322,9 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Category Charts */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pie Chart - Category Breakdown */}
+          {/* Pie Chart */}
           <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg p-6 hover:shadow-xl transition-all duration-300">
             <h3 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">
               <PiggyBank className="w-5 h-5 text-amber-500" />
@@ -279,16 +333,8 @@ export default function HomePage() {
             <div className="h-72">
               <ResponsiveContainer>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
+                  <Pie data={pieData || []} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
+                    {pieData?.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -311,50 +357,36 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Category Spending Progress */}
+          {/* Budget Progress */}
           <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 shadow-lg p-6 hover:shadow-xl transition-all duration-300">
             <h4 className="font-semibold text-gray-800 text-lg mb-4 flex items-center gap-2">
               <Target className="w-5 h-5 text-amber-500" />
               Budget Progress
             </h4>
             <div className="space-y-4">
-              {categories.map((c, index) => {
+              {categories?.map((c, index) => {
                 const usedPercent = Math.min((c.amount / c.target) * 100, 100)
                 const isOverBudget = c.amount > c.target
                 return (
-                  <div
-                    key={c.category}
-                    className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200"
-                  >
+                  <div key={c.category} className="p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 rounded-xl border border-amber-100/50 hover:border-amber-200 hover:shadow-md transition-all duration-200">
                     <div className="flex justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                         <p className="font-medium text-gray-700">{c.category}</p>
                       </div>
-                      <p
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          isOverBudget
-                            ? "bg-red-100 text-red-600"
-                            : usedPercent > 80
-                              ? "bg-amber-100 text-amber-600"
-                              : "bg-green-100 text-green-600"
-                        }`}
-                      >
+                      <p className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isOverBudget ? "bg-red-100 text-red-600" : usedPercent > 80 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600"
+                        }`}>
                         {usedPercent.toFixed(0)}%
                       </p>
                     </div>
                     <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className={`h-3 rounded-full transition-all duration-500 ${
-                          isOverBudget
-                            ? "bg-gradient-to-r from-red-400 to-red-500"
-                            : usedPercent > 80
-                              ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                              : "bg-gradient-to-r from-green-400 to-emerald-500"
-                        }`}
+                        className={`h-3 rounded-full transition-all duration-500 ${isOverBudget
+                          ? "bg-gradient-to-r from-red-400 to-red-500"
+                          : usedPercent > 80
+                            ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                            : "bg-gradient-to-r from-green-400 to-emerald-500"
+                          }`}
                         style={{ width: `${usedPercent}%` }}
                       />
                     </div>
@@ -367,10 +399,7 @@ export default function HomePage() {
               })}
             </div>
             <div className="text-center mt-4">
-              <Link
-                to="/categories"
-                className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-medium text-sm group"
-              >
+              <Link to="/categories" className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 font-medium text-sm group">
                 Manage Budgets
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
