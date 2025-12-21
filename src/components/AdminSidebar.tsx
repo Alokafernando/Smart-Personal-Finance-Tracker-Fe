@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Home, BarChartBig as ChartPie, Layers, BarChart3, Tag, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, } from "lucide-react"
+import { Home, BarChartBig as ChartPie, Layers, Users, BarChart3, Tag, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, } from "lucide-react"
 import Swal from "sweetalert2"
 import { getUserDetails } from "../services/auth"
 import { useAuth } from "../context/authContext"
@@ -46,6 +46,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { label: "Home", icon: Home, route: "/admin/home" },
+    { label: "Users", icon: Users, route: "/admin/users" },
     { label: "Transactions", icon: Layers, route: "/admin/transaction" },
     { label: "Budget", icon: ChartPie, route: "/admin/budget" },
     { label: "Categories", icon: Tag, route: "/admin/categories" },
