@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Users, UserCheck, UserX, Shield, Mail, Eye, X, Search } from "lucide-react"
 import Swal from "sweetalert2"
-import { getAllUsers, updateUserStatus } from "../../services/user"
+import { getAllUsers, getEachUserTransactionCount, updateUserStatus } from "../../services/user"
 import type { Status } from "../../services/user"
 import type { IUser } from "../../services/user"
 
@@ -17,12 +17,21 @@ export default function UsersPage() {
         try {
             setLoading(true)
             const data = await getAllUsers()
+            const txData = await getEachUserTransactionCount()
+
+            const txMap: Record<string, number> = {}
+            txData.data.forEach((u: any) => {
+                txMap[u.userId] = u.transactionCount
+            })
+
             const mappedUsers = Array.isArray(data.users)
                 ? data.users.map((u: any) => ({
                     ...u,
                     status: (u.approved?.trim().toUpperCase() as Status) || "PENDING",
+                    transactions: txMap[u._id] || 0, // attach transaction count, default 0
                 }))
                 : []
+
             setUsers(mappedUsers)
         } catch (err) {
             console.error("Failed to fetch users:", err)

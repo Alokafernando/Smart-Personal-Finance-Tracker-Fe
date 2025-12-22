@@ -40,3 +40,8 @@ export const updateUserStatus = async (userId: string, status: Status) => {
   const res = await api.put(`/user/${userId}/status`, { status })
   return res.data
 }
+
+export const getEachUserTransactionCount = async () => {
+  const res = await api.get("/user/user-count");
+  return res.data
+};
