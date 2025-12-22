@@ -1,61 +1,98 @@
-import { useState } from "react";
-import { Users, UserCheck, UserX, Shield,  Mail,  Eye,  X,  Search, } from "lucide-react";
-
-/* ================= ENUM ================= */
-export enum Status {
-    PENDING = "PENDING",
-    APPROVED = "APPROVED",
-    REJECTED = "REJECTED",
-}
-
-/* ================= MOCK DATA ================= */
-const mockUsers = [
-    { id: 1, name: "Buddhika Fernando", email: "buddhika@email.com", role: "ADMIN", status: Status.PENDING, transactions: 124 },
-    { id: 2, name: "Kasun Perera", email: "kasun@email.com", role: "USER", status: Status.APPROVED, transactions: 56 },
-    { id: 3, name: "Nimal Silva", email: "nimal@email.com", role: "USER", status: Status.REJECTED, transactions: 8 },
-];
+import { useState, useEffect } from "react"
+import { Users, UserCheck, UserX, Shield, Mail, Eye, X, Search } from "lucide-react"
+import Swal from "sweetalert2"
+import { getAllUsers, updateUserStatus } from "../../services/user"
+import type { Status } from "../../services/user"
+import type { IUser } from "../../services/user"
 
 export default function UsersPage() {
-    const [users, setUsers] = useState(mockUsers);
-    const [search, setSearch] = useState("");
-    const [selectedUser, setSelectedUser] = useState<any>(null);
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [filterRole, setFilterRole] = useState<"ALL" | "ADMIN" | "USER">("ALL");
+    const [users, setUsers] = useState<IUser[]>([])
+    const [search, setSearch] = useState("")
+    const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+    const [filterRole, setFilterRole] = useState<"ALL" | "ADMIN" | "USER">("ALL")
+    const [loading, setLoading] = useState(true)
 
-    /* ================= FILTER USERS ================= */
+    const loadAllUsers = async () => {
+        try {
+            setLoading(true)
+            const data = await getAllUsers()
+            const mappedUsers = Array.isArray(data.users)
+                ? data.users.map((u: any) => ({
+                    ...u,
+                    status: (u.approved?.trim().toUpperCase() as Status) || "PENDING",
+                }))
+                : []
+            setUsers(mappedUsers)
+        } catch (err) {
+            console.error("Failed to fetch users:", err)
+            setUsers([])
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadAllUsers()
+    }, [])
+
     const filteredUsers = users.filter(
         (u) =>
-            (u.name.toLowerCase().includes(search.toLowerCase()) ||
+            (u.username.toLowerCase().includes(search.toLowerCase()) ||
                 u.email.toLowerCase().includes(search.toLowerCase())) &&
-            (filterRole === "ALL" || u.role === filterRole)
-    );
+            (filterRole === "ALL" || u.role.includes(filterRole))
+    )
 
-    /* ================= STATUS STYLING ================= */
     const statusClasses: Record<Status, string> = {
-        [Status.PENDING]: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
-        [Status.APPROVED]: "bg-green-100 text-green-700 hover:bg-green-200",
-        [Status.REJECTED]: "bg-red-100 text-red-700 hover:bg-red-200",
-    };
+        PENDING: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
+        APPROVED: "bg-green-100 text-green-700 hover:bg-green-200",
+        REJECTED: "bg-red-100 text-red-700 hover:bg-red-200",
+    }
 
-    /* ================= HANDLE STATUS CHANGE ================= */
-    const handleStatusChange = (userId: number, newStatus: Status) => {
-        if (newStatus === Status.REJECTED) {
-            if (!window.confirm("Are you sure you want to reject this user?")) {
-                return; // Do not update if user cancels
-            }
+    const handleStatusChange = async (userId: string, newStatus: Status) => {
+        if (newStatus === "REJECTED") {
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "This user will be rejected!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Yes, Reject",
+                cancelButtonText: "Cancel",
+            })
+
+            if (!result.isConfirmed) return
         }
-        setUsers((prev) =>
-            prev.map((user) =>
-                user.id === userId ? { ...user, status: newStatus } : user
-            )
-        );
-    };
+
+        try {
+            const res = await updateUserStatus(userId, newStatus)
+            console.log(res.message)
+
+            await loadAllUsers()
+
+            Swal.fire({
+                icon: "success",
+                title: "Updated",
+                text: `User status changed to ${newStatus}`,
+                timer: 1500,
+                showConfirmButton: false,
+            })
+        } catch (error) {
+            console.error("Status update failed:", error)
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to update user status",
+            })
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-
-                {/* ================= HEADER ================= */}
+                {/* HEADER */}
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
                         <Users size={28} className="text-white" />
@@ -66,36 +103,23 @@ export default function UsersPage() {
                     </div>
                 </div>
 
-                {/* ================= STATS ================= */}
+                {/* STATS */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <StatCard title="Total Users" value={users.length} icon={Users} />
-                    <StatCard title="Approved Users" value={users.filter(u => u.status === Status.APPROVED).length} icon={UserCheck} />
-                    <StatCard title="Rejected Users" value={users.filter(u => u.status === Status.REJECTED).length} icon={UserX} />
-                    <StatCard title="Admins" value={users.filter(u => u.role === "ADMIN").length} icon={Shield} />
+                    <StatCard title="Approved Users" value={users.filter(u => u.status === "APPROVED").length} icon={UserCheck} />
+                    <StatCard title="Rejected Users" value={users.filter(u => u.status === "REJECTED").length} icon={UserX} />
+                    <StatCard title="Admins" value={users.filter(u => u.role.includes("ADMIN")).length} icon={Shield} />
                 </div>
 
-                {/* ================= FILTER BUTTONS ================= */}
+                {/* FILTER BUTTONS */}
                 <div className="flex flex-wrap gap-2">
-                    <FilterButton
-                        active={filterRole === "ALL"}
-                        onClick={() => setFilterRole("ALL")}
-                        label={`All (${users.length})`}
-                    />
-                    <FilterButton
-                        active={filterRole === "ADMIN"}
-                        onClick={() => setFilterRole("ADMIN")}
-                        label={`Admins (${users.filter(u => u.role === "ADMIN").length})`}
-                    />
-                    <FilterButton
-                        active={filterRole === "USER"}
-                        onClick={() => setFilterRole("USER")}
-                        label={`Users (${users.filter(u => u.role === "USER").length})`}
-                    />
+                    <FilterButton active={filterRole === "ALL"} onClick={() => setFilterRole("ALL")} label={`All (${users.length})`} />
+                    <FilterButton active={filterRole === "ADMIN"} onClick={() => setFilterRole("ADMIN")} label={`Admins (${users.filter(u => u.role.includes("ADMIN")).length})`} />
+                    <FilterButton active={filterRole === "USER"} onClick={() => setFilterRole("USER")} label={`Users (${users.filter(u => u.role.includes("USER")).length})`} />
                 </div>
 
-                {/* ================= TABLE ================= */}
+                {/* TABLE */}
                 <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl overflow-hidden mt-2">
-                    {/* TABLE HEADER + SEARCH */}
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 rounded-t-2xl">
                         <h2 className="text-xl font-semibold text-white">All Users</h2>
                         <div className="relative w-full md:w-80">
@@ -110,7 +134,6 @@ export default function UsersPage() {
                         </div>
                     </div>
 
-                    {/* TABLE */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-amber-50 text-gray-600">
@@ -122,8 +145,14 @@ export default function UsersPage() {
                                     <th className="px-6 py-3 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y">
-                                {filteredUsers.length === 0 && (
+                            <tbody className="divide-y min-h-[150px]">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="text-center py-20 text-gray-500">
+                                            Loading users...
+                                        </td>
+                                    </tr>
+                                ) : filteredUsers.length === 0 ? (
                                     <tr>
                                         <td colSpan={5}>
                                             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -132,72 +161,59 @@ export default function UsersPage() {
                                             </div>
                                         </td>
                                     </tr>
+                                ) : (
+                                    filteredUsers.map((u, index) => (
+                                        <tr key={u._id} className={`transition-colors duration-150 ${index % 2 === 0 ? "bg-white" : "bg-white/90"} hover:bg-amber-50/50`}>
+                                            <td className="px-6 py-4">
+                                                <p className="font-semibold text-gray-900">{u.username}</p>
+                                                <p className="text-gray-500 flex items-center gap-1"><Mail size={14} /> {u.email}</p>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${u.role.includes("ADMIN") ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{u.role.join(", ")}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <select
+                                                    value={u.status}
+                                                    onChange={(e) => handleStatusChange(u._id, e.target.value as Status)}
+                                                    className={`px-5 py-2 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 min-w-[140px] ${statusClasses[u.status]}  `}
+                                                >
+                                                    <option value="PENDING">Pending 🟡</option>
+                                                    <option value="APPROVED">Approved 🟢 </option>
+                                                    <option value="REJECTED">Rejected 🔴</option>
+                                                </select>
+                                            </td>
+
+                                            <td className="px-6 py-4 text-center font-medium">{u.transactions}</td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    onClick={() => { setSelectedUser(u); setIsViewModalOpen(true) }}
+                                                    className="p-2 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
                                 )}
-
-                                {filteredUsers.map((u, index) => (
-                                    <tr
-                                        key={u.id}
-                                        className={`transition-colors duration-150 ${index % 2 === 0 ? "bg-white" : "bg-white/90"
-                                            } hover:bg-amber-50/50`}
-                                    >
-                                        <td className="px-6 py-4">
-                                            <p className="font-semibold text-gray-900">{u.name}</p>
-                                            <p className="text-gray-500 flex items-center gap-1">
-                                                <Mail size={14} /> {u.email}
-                                            </p>
-                                        </td>
-
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${u.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
-                                                {u.role}
-                                            </span>
-                                        </td>
-
-                                        <td className="px-6 py-4 text-center">
-                                            <select
-                                                value={u.status}
-                                                onChange={(e) => handleStatusChange(u.id, e.target.value as Status)}
-                                                className={`px-4 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 ${statusClasses[u.status]}`}
-                                            >
-                                                <option value={Status.PENDING}>PENDING</option>
-                                                <option value={Status.APPROVED}>APPROVED</option>
-                                                <option value={Status.REJECTED}>REJECTED</option>
-                                            </select>
-                                        </td>
-
-                                        <td className="px-6 py-4 text-center font-medium">{u.transactions}</td>
-
-                                        <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => { setSelectedUser(u); setIsViewModalOpen(true); }}
-                                                className="p-2 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
-                                            >
-                                                <Eye size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            {/* ================= VIEW USER MODAL ================= */}
             {isViewModalOpen && selectedUser && (
                 <Modal title="User Details" onClose={() => setIsViewModalOpen(false)}>
-                    <InfoRow label="Name" value={selectedUser.name} />
+                    <InfoRow label="Name" value={selectedUser.username} />
                     <InfoRow label="Email" value={selectedUser.email} />
-                    <InfoRow label="Role" value={selectedUser.role} />
+                    <InfoRow label="Role" value={selectedUser.role.join(", ")} />
                     <InfoRow label="Status" value={selectedUser.status} />
                     <InfoRow label="Transactions" value={selectedUser.transactions} />
                 </Modal>
             )}
         </div>
-    );
+    )
 }
 
-/* ================= COMPONENTS ================= */
 function StatCard({ title, value, icon: Icon }: any) {
     return (
         <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-2xl shadow-lg p-5 flex items-center gap-4 transition hover:shadow-xl">
@@ -209,21 +225,18 @@ function StatCard({ title, value, icon: Icon }: any) {
                 <p className="text-2xl font-bold text-gray-900">{value}</p>
             </div>
         </div>
-    );
+    )
 }
 
 function FilterButton({ active, onClick, label }: any) {
     return (
         <button
             onClick={onClick}
-            className={`px-4 py-2 rounded-xl font-medium transition-all ${active
-                    ? "bg-amber-500 text-white shadow-lg"
-                    : "bg-white border border-amber-300 text-gray-700 hover:bg-amber-50"
-                }`}
+            className={`px-4 py-2 rounded-xl font-medium transition-all ${active ? "bg-amber-500 text-white shadow-lg" : "bg-white border border-amber-300 text-gray-700 hover:bg-amber-50"}`}
         >
             {label}
         </button>
-    );
+    )
 }
 
 function InfoRow({ label, value }: any) {
@@ -232,7 +245,7 @@ function InfoRow({ label, value }: any) {
             <span className="text-sm text-gray-500">{label}</span>
             <span className="font-medium text-gray-900">{value}</span>
         </div>
-    );
+    )
 }
 
 function Modal({ title, children, onClose }: any) {
@@ -248,5 +261,5 @@ function Modal({ title, children, onClose }: any) {
                 <div className="p-6 space-y-3">{children}</div>
             </div>
         </div>
-    );
+    )
 }
