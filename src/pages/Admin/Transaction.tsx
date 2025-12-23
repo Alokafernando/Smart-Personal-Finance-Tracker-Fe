@@ -69,7 +69,7 @@ export default function AdminTransactionsPage() {
       showCancelButton: true,
       confirmButtonColor: "#dc2626",
       confirmButtonText: "Delete",
-    })
+    }) 
     if (!confirm.isConfirmed) return
 
     try {

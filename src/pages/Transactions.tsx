@@ -67,9 +67,22 @@ export default function TransactionsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
 
-  const loadAllTransaction = async (page = 1) => {
+  const [filterType,] = useState<"ALL" | "INCOME" | "EXPENSE">("ALL")
+  const [filterCategory,] = useState<string>("")
+  const [filterStartDate,] = useState<string>("")
+  const [filterEndDate,] = useState<string>("")
+
+  const loadAllTransaction = async (page = 1, searchTerm?: string) => {
     try {
-      const data = await getAllTransactions(page, 10)
+      const data = await getAllTransactions({
+        page,
+        limit: 10,
+        type: filterType !== "ALL" ? filterType : undefined,
+        category_id: filterCategory || undefined,
+        startDate: filterStartDate || undefined,
+        endDate: filterEndDate || undefined,
+        search: searchTerm || search || undefined, // use the passed search term or the state
+      })
       setTransactions(data.transactions)
       setCurrentPage(data.page)
       setTotalPages(data.totalPages)
@@ -88,9 +101,9 @@ export default function TransactionsPage() {
   }
 
   useEffect(() => {
+    loadAllTransaction(1)
     loadAllCategories()
-    loadAllTransaction()
-  }, [])
+  }, [search, filterType, filterCategory, filterStartDate, filterEndDate])
 
 
   const filteredTx = transactions.filter((t) =>
@@ -391,10 +404,16 @@ export default function TransactionsPage() {
               type="text"
               placeholder="Search transactions..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={async (e) => {
+                const value = e.target.value
+                setSearch(value)
+                await loadAllTransaction(1, value) // works now
+              }}
               className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 bg-white/80 backdrop-blur-sm w-64 transition-all"
             />
+
           </div>
+
 
           <button
             onClick={() => setShowOCRModal(true)}
@@ -478,67 +497,58 @@ export default function TransactionsPage() {
             </thead>
 
             <tbody>
-              {transactions.filter((t) =>
-                (t.merchant || t.note || "").toLowerCase().includes(search.toLowerCase())
-              ).length > 0 ? (
-                transactions
-                  .filter((t) => (t.merchant || t.note || "").toLowerCase().includes(search.toLowerCase()))
-                  .map((t) => {
-                    const categoryName =
-                      categories.find((c) => c._id === t.category_id)?.name || "Unknown"
-                    const colors = categoryColors[categoryName] || categoryColors.Other
+              {transactions.length > 0 ? (
+                transactions.map((t) => {
+                  const categoryName =
+                    categories.find((c) => c._id === t.category_id)?.name || "Unknown"
+                  const colors = categoryColors[categoryName] || categoryColors.Other
 
-                    return (
-                      <tr key={t._id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
-                        {/* Transaction */}
-                        <td className="py-4 px-6">{t.merchant || t.note || "No Title"}</td>
+                  return (
+                    <tr key={t._id} className="border-b border-gray-100 hover:bg-gray-50 transition-all">
+                      {/* Transaction */}
+                      <td className="py-4 px-6">{t.merchant || t.note || "No Title"}</td>
 
-                        {/* Category */}
-                        <td className="py-4 px-6">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
-                          >
-                            {categoryName}
-                          </span>
-                        </td>
-
-                        {/* Date */}
-                        <td className="py-4 px-6">
-                          {new Date(t.date).toISOString().split("T")[0]}
-                        </td>
-
-                        {/* Amount */}
-                        <td
-                          className={`py-4 px-6 text-right font-medium ${t.type === "INCOME" ? "text-emerald-600" : "text-red-500"
-                            }`}
+                      {/* Category */}
+                      <td className="py-4 px-6">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}
                         >
-                          Rs {Math.abs(t.amount).toFixed(2)}
-                        </td>
+                          {categoryName}
+                        </span>
+                      </td>
 
-                        {/* Actions */}
-                        <td className="py-4 px-6 text-center flex justify-center gap-2">
-                          {/* Update/Edit Button */}
-                          <button
-                            onClick={() => handleUpdate(t._id)}
-                            className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
-                            title="Edit Transaction"
-                          >
-                            <Pencil className="w-4 h-4 text-blue-500" />
-                          </button>
+                      {/* Date */}
+                      <td className="py-4 px-6">{new Date(t.date).toISOString().split("T")[0]}</td>
 
-                          {/* Delete Button */}
-                          <button
-                            onClick={() => handleDelete(t._id)}
-                            className="p-2 rounded-lg hover:bg-red-50 transition-colors"
-                            title="Delete Transaction"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
-                        </td>
+                      {/* Amount */}
+                      <td
+                        className={`py-4 px-6 text-right font-medium ${t.type === "INCOME" ? "text-emerald-600" : "text-red-500"
+                          }`}
+                      >
+                        Rs {Math.abs(t.amount).toFixed(2)}
+                      </td>
 
-                      </tr>
-                    )
-                  })
+                      {/* Actions */}
+                      <td className="py-4 px-6 text-center flex justify-center gap-2">
+                        <button
+                          onClick={() => handleUpdate(t._id)}
+                          className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Edit Transaction"
+                        >
+                          <Pencil className="w-4 h-4 text-blue-500" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(t._id)}
+                          className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                          title="Delete Transaction"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
                   <td
@@ -551,6 +561,7 @@ export default function TransactionsPage() {
                 </tr>
               )}
             </tbody>
+
 
           </table>
         </div>
@@ -944,18 +955,14 @@ export default function TransactionsPage() {
                 </select>
               </div>
 
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date</label>
-                <input
-                  type="date"
-                  value={editingTransaction.date}
-                  onChange={(e) =>
-                    setEditingTransaction({ ...editingTransaction, date: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
-                />
-              </div>
+              <input
+                type="date"
+                value={editingTransaction.date.split("T")[0]} // extract only YYYY-MM-DD
+                onChange={(e) =>
+                  setEditingTransaction({ ...editingTransaction, date: e.target.value })
+                }
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 transition-all"
+              />
 
               {/* Actions */}
               <div className="flex gap-3 pt-2">
@@ -976,7 +983,6 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
-
     </div>
   )
 }

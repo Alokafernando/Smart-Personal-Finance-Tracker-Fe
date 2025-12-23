@@ -13,8 +13,26 @@ export type Transaction = {
     ai_category?: string
 }
 
-export const getAllTransactions = async (page: number, limit: number) => {
-  const res = await api.get(`/transactions?page=${page}&limit=${limit}`)
+export const getAllTransactions = async (params?: {
+  page?: number
+  limit?: number
+  category_id?: string
+  type?: "INCOME" | "EXPENSE"
+  startDate?: string
+  endDate?: string
+  search?: string
+}) => {
+  const query = new URLSearchParams()
+
+  if (params?.page) query.append("page", params.page.toString())
+  if (params?.limit) query.append("limit", params.limit.toString())
+  if (params?.category_id) query.append("category_id", params.category_id)
+  if (params?.type) query.append("type", params.type)
+  if (params?.startDate) query.append("startDate", params.startDate)
+  if (params?.endDate) query.append("endDate", params.endDate)
+  if (params?.search) query.append("search", params.search)
+
+  const res = await api.get(`/transactions?${query.toString()}`)
   return res.data
 }
 
