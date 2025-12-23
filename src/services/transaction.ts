@@ -37,3 +37,8 @@ export const getLatestTransaction = async () => {
   const res = await api.get("/transactions/latest")
   return res.data
 }
+
+export const getAllTransactionsForAdmin = async (page: number, limit: number) => {
+   const res = await api.get(`/transactions/all?page=${page}&limit=${limit}`)
+  return res.data
+}
