@@ -38,7 +38,24 @@ export const getLatestTransaction = async () => {
   return res.data
 }
 
-export const getAllTransactionsForAdmin = async (page: number, limit: number) => {
-   const res = await api.get(`/transactions/all?page=${page}&limit=${limit}`)
+export const getAllTransactionsForAdmin = async (
+  page: number,
+  limit: number,
+  searchUser?: string,
+  filterType?: "ALL" | "INCOME" | "EXPENSE",
+  fromDate?: string,
+  toDate?: string
+) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  })
+
+  if (searchUser) params.append("searchUser", searchUser)
+  if (filterType) params.append("filterType", filterType)
+  if (fromDate) params.append("fromDate", fromDate)
+  if (toDate) params.append("toDate", toDate)
+
+  const res = await api.get(`/transactions/all?${params.toString()}`)
   return res.data
 }
