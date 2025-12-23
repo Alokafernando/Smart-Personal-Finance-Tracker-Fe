@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Search, Eye, Trash2, X } from "lucide-react"
 import Swal from "sweetalert2"
-import { getAllTransactionsForAdmin } from "../../services/transaction"
+import { deleteTransaction, getAllTransactionsForAdmin } from "../../services/transaction"
 
 type TransactionType = "INCOME" | "EXPENSE"
 
@@ -73,7 +73,7 @@ export default function AdminTransactionsPage() {
     if (!confirm.isConfirmed) return
 
     try {
-      // await delete(`/transactions/${id}`)
+       await deleteTransaction(`${id}`)
       Swal.fire("Deleted!", "Transaction removed", "success")
       loadAllTransactions()
     } catch (error) {
