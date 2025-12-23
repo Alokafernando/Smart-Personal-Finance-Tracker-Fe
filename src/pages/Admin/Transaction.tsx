@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Search, Eye, Trash2, X } from "lucide-react"
+import { Search, Eye, Trash2,  } from "lucide-react"
 import Swal from "sweetalert2"
 import { deleteTransaction, getAllTransactionsForAdmin } from "../../services/transaction"
 
