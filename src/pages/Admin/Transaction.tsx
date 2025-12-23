@@ -201,19 +201,70 @@ export default function AdminTransactionsPage() {
           </div>
         </div>
 
-        {/* MODAL */}
+        {/* TRANSACTION DETAILS MODAL */}
         {selectedTx && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 relative shadow-lg">
-              <button onClick={() => setSelectedTx(null)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"><X /></button>
-              <h2 className="text-xl font-bold mb-4">Transaction Details</h2>
-              <div className="space-y-2 text-sm">
-                <p><b>User:</b> {selectedTx.user.username}</p>
-                <p><b>Email:</b> {selectedTx.user.email}</p>
-                <p><b>Category:</b> {selectedTx.category?.name || "Uncategorized"}</p>
-                <p><b>Type:</b> {selectedTx.type}</p>
-                <p><b>Amount:</b> Rs. {selectedTx.amount.toLocaleString()}</p>
-                <p><b>Date:</b> {new Date(selectedTx.date).toLocaleDateString()}</p>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border-t-8 border-amber-500">
+
+              {/* Header */}
+              <div className="bg-amber-500 text-white text-center py-4 font-bold text-xl tracking-wider">
+                Transaction Receipt
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+
+                {/* User */}
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-gray-500 font-medium">User</span>
+                  <span className="text-gray-800 font-semibold">{selectedTx.user.username}</span>
+                </div>
+
+                {/* Email */}
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-gray-500 font-medium">Email</span>
+                  <span className="text-gray-800 font-semibold">{selectedTx.user.email}</span>
+                </div>
+
+                {/* Category */}
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-gray-500 font-medium">Category</span>
+                  <span className="text-gray-800 font-semibold">{selectedTx.category?.name || "Uncategorized"}</span>
+                </div>
+
+                {/* Amount */}
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-gray-500 font-medium">Amount (Rs)</span>
+                  <span className="text-gray-800 font-semibold text-lg">{selectedTx.amount.toLocaleString()}</span>
+                </div>
+
+                {/* Date */}
+                <div className="flex justify-between items-center border-b pb-2">
+                  <span className="text-gray-500 font-medium">Date</span>
+                  <span className="text-gray-800 font-semibold">{new Date(selectedTx.date).toLocaleDateString()}</span>
+                </div>
+
+                {/* Status Badge (optional) */}
+                {selectedTx.type && (
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-gray-500 font-medium">Type</span>
+                    <span className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${selectedTx.type === "INCOME" ? "bg-green-500" : "bg-red-500"
+                      }`}>
+                      {selectedTx.type}
+                    </span>
+                  </div>
+                )}
+
+                {/* Close Button */}
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={() => setSelectedTx(null)}
+                    className="px-6 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:from-amber-600 hover:to-orange-600 shadow-lg transition-all"
+                  >
+                    Close
+                  </button>
+                </div>
+
               </div>
             </div>
           </div>
