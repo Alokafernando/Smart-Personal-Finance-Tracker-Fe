@@ -5,8 +5,20 @@ export type Budget = {
   category_id: string
   amount: number
   month: string
-  year: number  
+  year: number
   user_id?: string
+  spent?: number
+}
+
+export type AdminBudget = {
+  userId: string
+  username: string
+  email: string
+  budgets: {
+    category: string
+    limit: number
+    spent: number
+  }[]
 }
 
 export const getAllBudgets = async () => {
@@ -31,5 +43,25 @@ export const deleteBudget = async (budgetId: string) => {
 
 export const getLatestBudgets = async () => {
   const res = await api.get("/budget/latest/")
+  return res.data
+}
+
+export const getAllBudgetsForAdmin = async (
+  page: number,
+  limit: number,
+  searchUser?: string,
+  category?: string,
+  status?: "ALL" | "OVER" | "OK"
+): Promise<{ users: AdminBudget[]; page: number; totalPages: number; totalBudgets: number }> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  })
+
+  if (searchUser) params.append("searchUser", searchUser)
+  if (category && category !== "ALL") params.append("category", category)
+  if (status && status !== "ALL") params.append("status", status)
+
+  const res = await api.get(`/budget/all?${params.toString()}`)
   return res.data
 }
