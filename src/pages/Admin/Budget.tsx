@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useMemo, useState } from "react"
 import { TrendingDown, TrendingUp, User, Wallet, Search } from "lucide-react"
 import { getAllBudgetsForAdmin } from "../../services/budget"
