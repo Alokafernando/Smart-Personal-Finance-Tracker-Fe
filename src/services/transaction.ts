@@ -74,6 +74,6 @@ export const getAllTransactionsForAdmin = async (
   if (fromDate) params.append("fromDate", fromDate)
   if (toDate) params.append("toDate", toDate)
 
-  const res = await api.get(`/transactions/all?${params.toString()}`)
+  const res = await api.get(`/transactions/admin/all?${params.toString()}`)
   return res.data
 }
