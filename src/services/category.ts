@@ -28,3 +28,8 @@ export const deleteCategory = async (categoryId: string) => {
   const res = await api.delete(`/category/${categoryId}`)
   return res.data
 }
+
+export const getAllUsersCategories = async (params?: { page?: number; searchUser?: string }) => {
+  const res = await api.get("/category/admin/all", { params });
+  return res.data;
+}
