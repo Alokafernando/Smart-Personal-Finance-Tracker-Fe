@@ -13,6 +13,10 @@ export default function UsersPage() {
     const [filterRole, setFilterRole] = useState<"ALL" | "ADMIN" | "USER">("ALL")
     const [loading, setLoading] = useState(true)
 
+    const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
+    const [newAdminData, setNewAdminData] = useState({ username: "", email: "", password: "",  confirmPassword: "", });
+
+
     const loadAllUsers = async () => {
         try {
             setLoading(true)
@@ -98,6 +102,8 @@ export default function UsersPage() {
         }
     }
 
+    
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -121,10 +127,19 @@ export default function UsersPage() {
                 </div>
 
                 {/* FILTER BUTTONS */}
-                <div className="flex flex-wrap gap-2">
-                    <FilterButton active={filterRole === "ALL"} onClick={() => setFilterRole("ALL")} label={`All (${users.length})`} />
-                    <FilterButton active={filterRole === "ADMIN"} onClick={() => setFilterRole("ADMIN")} label={`Admins (${users.filter(u => u.role.includes("ADMIN")).length})`} />
-                    <FilterButton active={filterRole === "USER"} onClick={() => setFilterRole("USER")} label={`Users (${users.filter(u => u.role.includes("USER")).length})`} />
+                <div className="flex flex-wrap gap-2 items-center justify-between">
+                    <div className="flex flex-wrap gap-2">
+                        <FilterButton active={filterRole === "ALL"} onClick={() => setFilterRole("ALL")} label={`All (${users.length})`} />
+                        <FilterButton active={filterRole === "ADMIN"} onClick={() => setFilterRole("ADMIN")} label={`Admins (${users.filter(u => u.role.includes("ADMIN")).length})`} />
+                        <FilterButton active={filterRole === "USER"} onClick={() => setFilterRole("USER")} label={`Users (${users.filter(u => u.role.includes("USER")).length})`} />
+                    </div>
+
+                    <button
+                        onClick={() => setIsAddAdminModalOpen(true)}
+                        className="px-4 py-2 bg-teal-600 text-white rounded-xl font-medium shadow-lg hover:bg-teal-700 transition"
+                    >
+                        <Shield size={16} className="inline mr-1" /> Add Admin
+                    </button>
                 </div>
 
                 {/* TABLE */}
@@ -219,6 +234,69 @@ export default function UsersPage() {
                     <InfoRow label="Transactions" value={selectedUser.transactions} />
                 </Modal>
             )}
+
+            {isAddAdminModalOpen && (
+                <Modal title="Add New Admin" onClose={() => setIsAddAdminModalOpen(false)}>
+                    <div className="flex flex-col gap-4">
+                        {/* Username */}
+                        <div className="flex flex-col">
+                            <label className="text-gray-700 font-medium mb-1">Username</label>
+                            <input
+                                type="text"
+                                placeholder="Enter username"
+                                value={newAdminData.username}
+                                onChange={(e) => setNewAdminData({ ...newAdminData, username: e.target.value })}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+
+                        {/* Email */}
+                        <div className="flex flex-col">
+                            <label className="text-gray-700 font-medium mb-1">Email</label>
+                            <input
+                                type="email"
+                                placeholder="Enter email"
+                                value={newAdminData.email}
+                                onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+
+                        {/* Password */}
+                        <div className="flex flex-col">
+                            <label className="text-gray-700 font-medium mb-1">Password</label>
+                            <input
+                                type="password"
+                                placeholder="Enter password"
+                                value={newAdminData.password}
+                                onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="flex flex-col">
+                            <label className="text-gray-700 font-medium mb-1">Confirm Password</label>
+                            <input
+                                type="password"
+                                placeholder="Confirm password"
+                                value={newAdminData.confirmPassword || ""}
+                                onChange={(e) => setNewAdminData({ ...newAdminData, confirmPassword: e.target.value })}
+                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            />
+                        </div>
+
+                        {/* Create Button */}
+                        <button
+                            onClick={handleAddAdmin}
+                            className="w-full px-4 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-xl shadow-lg hover:from-orange-500 hover:to-orange-600 transition"
+                        >
+                            Create Admin
+                        </button>
+                    </div>
+                </Modal>
+            )}
+
         </div>
     )
 }
