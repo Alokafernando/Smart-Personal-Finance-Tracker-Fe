@@ -47,7 +47,7 @@ export default function HomePage() {
         setBudgets(budgetsData)
         setChartData(chartDataRes)
       } catch (err) {
-        console.error("Failed to load dashboard data", err)
+        console.error(err)
       } finally {
         setLoading(false)
       }

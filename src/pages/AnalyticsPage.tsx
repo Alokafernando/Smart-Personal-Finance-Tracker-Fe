@@ -3,6 +3,8 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pi
 import { BarChart3, PieChartIcon, TrendingUp, TrendingDown, DollarSign, Wallet, ArrowUpRight, ArrowDownRight, Download, Filter, } from "lucide-react"
 import { getAnalytics, downloadAnalyticsPDF } from "../services/analytics"
 import type { AnalyticsSummary, MonthlyAnalytics, CategoryAnalytics, AnalyticsFilter, } from "../services/analytics"
+import Swal from "sweetalert2"
+
 
 
 const PIE_COLORS = ["#f59e0b", "#fb923c", "#fbbf24", "#d97706", "#fcd34d"]
@@ -37,8 +39,7 @@ export default function AnalyticsPage() {
             setMonthlyData(data.monthly)
             setCategoryData(data.categories)
         } catch (err) {
-            console.error("Analytics fetch failed:", err)
-            setError("Failed to load analytics data")
+            console.error(err)
         } finally {
             setLoading(false)
         }
@@ -97,8 +98,13 @@ export default function AnalyticsPage() {
             link.remove()
             window.URL.revokeObjectURL(url)
         } catch (error) {
-            console.error("PDF export failed", error)
-            alert("Failed to export PDF")
+            console.error(error)
+            Swal.fire({
+                icon: "error",
+                title: "Export Failed",
+                text: "Failed to export PDF",
+            })
+
         } finally {
             setExporting(false)
         }

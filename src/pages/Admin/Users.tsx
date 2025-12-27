@@ -41,7 +41,7 @@ export default function UsersPage() {
 
             setUsers(mappedUsers)
         } catch (err) {
-            console.error("Failed to fetch users:", err)
+            console.error(err)
             setUsers([])
         } finally {
             setLoading(false)
@@ -95,7 +95,7 @@ export default function UsersPage() {
                 showConfirmButton: false,
             })
         } catch (error) {
-            console.error("Status update failed:", error)
+            console.error(error)
 
             Swal.fire({
                 icon: "error",
@@ -136,12 +136,8 @@ export default function UsersPage() {
         }
 
         try {
-            const res = await adminRegister({
-                username,
-                email,
-                password,
-                role: role,
-            })
+            const obj: any = { username, email, password, role: role }
+            const res = await adminRegister(obj)
             console.log(res.message)
 
             Swal.fire({
@@ -164,7 +160,6 @@ export default function UsersPage() {
             await loadAllUsers()
         } catch (error: any) {
             console.error(error)
-
             Swal.fire({
                 icon: "error",
                 title: "Failed to create admin",

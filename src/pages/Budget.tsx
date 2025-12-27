@@ -93,7 +93,7 @@ export default function BudgetPage() {
         text: "Your budget has been added successfully",
       })
     } catch (err: any) {
-      console.error("Failed to add budget", err)
+      console.error(err)
 
       if (err.response && err.response.data?.message) {
         Swal.fire({
@@ -128,7 +128,7 @@ export default function BudgetPage() {
         text: "Budget has been updated successfully.",
       })
     } catch (err: any) {
-      console.error("Failed to add budget", err)
+      console.error(err)
 
       if (err.response && err.response.data?.message) {
         Swal.fire({
@@ -171,7 +171,7 @@ export default function BudgetPage() {
           text: "Budget has been deleted successfully.",
         })
       } catch (err: any) {
-        console.error("Failed to delete budget", err)
+        console.error(err)
         Swal.fire({
           icon: "error",
           title: "Failed to delete",

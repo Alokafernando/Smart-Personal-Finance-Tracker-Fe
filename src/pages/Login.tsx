@@ -52,9 +52,9 @@ export default function Login() {
       const isAdmin = Array.isArray(user.role) && user.role.includes("ADMIN")
 
       if (isAdmin) {
-        navigate("/admin/home", { replace: true })
+        navigate("/admin/home")
       } else {
-        navigate("/home", { replace: true })
+        navigate("/home")
       }
 
 
@@ -71,8 +71,6 @@ export default function Login() {
       setLoading(false)
     }
   }
-
-
 
   return (
     <div className="min-h-screen w-full flex">

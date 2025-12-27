@@ -28,7 +28,7 @@ export default function AdminUserCategories() {
       setUsers(data.users)
       setTotalPages(data.totalPages)
     } catch (err) {
-      console.error("Error fetching users:", err)
+      console.error(err)
     } finally {
       setLoading(false)
     }

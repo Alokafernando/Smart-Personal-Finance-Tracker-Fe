@@ -47,7 +47,6 @@ export default function Register() {
       const obj: any = { username, email, password, role }
       const res = await register(obj)
 
-      console.log(res.data)
       console.log(res.message)
 
       Swal.fire({

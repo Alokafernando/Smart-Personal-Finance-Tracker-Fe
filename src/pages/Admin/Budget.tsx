@@ -43,7 +43,7 @@ export default function AdminUserBudgetsPage() {
       setUsers(res.users ?? [])
       setTotalPages(res.totalPages ?? 1)
     } catch (err) {
-      console.error("Failed to load budgets", err)
+      console.error(err)
       setUsers([])
     } finally {
       setLoading(false)

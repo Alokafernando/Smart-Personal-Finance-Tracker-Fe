@@ -63,7 +63,7 @@ export default function Analytics() {
           }))
         )
       } catch (err) {
-        console.error("Failed to load analytics", err)
+        console.error(err)
       } finally {
         setLoading(false)
       }

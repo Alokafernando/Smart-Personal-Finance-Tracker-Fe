@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, type ChangeEvent } from "react"
-import {  User, Save, Camera,  Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff, Settings, ChevronRight, Shield, HelpCircle } from "lucide-react"
+import { User, Save, Camera, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff, Settings, ChevronRight, Shield, HelpCircle } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
 import { getUserDetails, passwordChangeHandle } from "../services/auth"
 import { updateProfileImage, updateUserDetails } from "../services/user"
@@ -41,7 +41,7 @@ export default function SettingsPage() {
         })
         setProfilePic(res.data.profileURL || defaultUser)
       } catch (err) {
-        console.error("Failed to fetch user details:", err)
+        console.error(err)
       }
     }
 
@@ -53,7 +53,12 @@ export default function SettingsPage() {
     e.preventDefault()
 
     if (!user?.userId) {
-      alert("User not logged in")
+      Swal.fire({
+        icon: "warning",
+        title: "Not Logged In",
+        text: "User not logged in. Please log in to continue.",
+        confirmButtonColor: "#f97316", 
+      })
       return
     }
 
@@ -66,7 +71,7 @@ export default function SettingsPage() {
 
       const res = await updateUserDetails(user.userId, payload)
       console.log(res.message)
-      
+
       Swal.fire({
         icon: "success",
         title: "Profile Updated",
@@ -74,7 +79,7 @@ export default function SettingsPage() {
         confirmButtonColor: "#f59e0b",
       })
     } catch (err: any) {
-      console.error("Failed to update user: ", err.response?.data || err)
+      console.error(err)
       Swal.fire({
         icon: "error",
         title: "Update Failed",
@@ -248,11 +253,10 @@ export default function SettingsPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                      activeTab === tab.id
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === tab.id
                         ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-200"
                         : "text-gray-600 hover:bg-amber-50"
-                    }`}
+                      }`}
                   >
                     <tab.icon
                       size={20}

@@ -41,7 +41,7 @@ export default function SettingsPage() {
         })
         setProfilePic(res.data.profileURL || defaultUser)
       } catch (err) {
-        console.error("Failed to fetch user details:", err)
+        console.error(err)
       }
     }
 
@@ -53,7 +53,12 @@ export default function SettingsPage() {
     e.preventDefault()
 
     if (!user?.userId) {
-      alert("User not logged in")
+      Swal.fire({
+        icon: "warning",
+        title: "Not Logged In",
+        text: "You must be logged in to continue.",
+        confirmButtonColor: "#f97316",
+      })
       return
     }
 
@@ -74,7 +79,7 @@ export default function SettingsPage() {
         confirmButtonColor: "#f59e0b",
       })
     } catch (err: any) {
-      console.error("Failed to update user: ", err.response?.data || err)
+      console.error(err)
       Swal.fire({
         icon: "error",
         title: "Update Failed",

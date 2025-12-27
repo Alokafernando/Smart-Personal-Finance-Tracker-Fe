@@ -74,7 +74,8 @@ export default function TransactionsPage() {
 
   const loadAllTransaction = async (page = 1, searchTerm?: string) => {
     try {
-      const data = await getAllTransactions({
+
+      const obj: any = {
         page,
         limit: 10,
         type: filterType !== "ALL" ? filterType : undefined,
@@ -82,7 +83,9 @@ export default function TransactionsPage() {
         startDate: filterStartDate || undefined,
         endDate: filterEndDate || undefined,
         search: searchTerm || search || undefined, // use the passed search term or the state
-      })
+      }
+
+      const data = await getAllTransactions(obj)
       setTransactions(data.transactions)
       setCurrentPage(data.page)
       setTotalPages(data.totalPages)
@@ -180,7 +183,7 @@ export default function TransactionsPage() {
       })
 
     } catch (err) {
-      console.error("Failed to add transaction", err)
+      console.error(err)
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -244,7 +247,7 @@ export default function TransactionsPage() {
 
       setOcrStep("review")
     } catch (err) {
-      console.error("OCR failed:", err)
+      console.error(err)
       Swal.fire({
         icon: "error",
         title: "OCR Failed",
@@ -407,7 +410,7 @@ export default function TransactionsPage() {
               onChange={async (e) => {
                 const value = e.target.value
                 setSearch(value)
-                await loadAllTransaction(1, value) // works now
+                await loadAllTransaction(1, value) 
               }}
               className="pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 bg-white/80 backdrop-blur-sm w-64 transition-all"
             />
