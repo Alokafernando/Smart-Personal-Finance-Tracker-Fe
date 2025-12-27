@@ -4,6 +4,7 @@ import Swal from "sweetalert2"
 import { getAllUsers, getEachUserTransactionCount, updateUserStatus } from "../../services/user"
 import type { Status } from "../../services/user"
 import type { IUser } from "../../services/user"
+import { adminRegister } from "../../services/auth"
 
 export default function UsersPage() {
     const [users, setUsers] = useState<IUser[]>([])
@@ -14,7 +15,9 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true)
 
     const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
-    const [newAdminData, setNewAdminData] = useState({ username: "", email: "", password: "",  confirmPassword: "", });
+    const [newAdminData, setNewAdminData] = useState({ username: "", email: "", password: "", confirmPassword: "", });
+
+    const [role] = useState("ADMIN")
 
 
     const loadAllUsers = async () => {
@@ -102,7 +105,74 @@ export default function UsersPage() {
         }
     }
 
-    
+    async function handleAddAdmin(): Promise<void> {
+        const { username, email, password, confirmPassword } = newAdminData
+
+        if (!username || !email || !password || !confirmPassword) {
+            Swal.fire({
+                icon: "warning",
+                title: "Missing fields",
+                text: "Please fill in all fields",
+            })
+            return
+        }
+
+        if (password !== confirmPassword) {
+            Swal.fire({
+                icon: "error",
+                title: "Password mismatch",
+                text: "Passwords do not match",
+            })
+            return
+        }
+
+        if (password.length < 8) {
+            Swal.fire({
+                icon: "error",
+                title: "Weak password",
+                text: "Password must be at least 8 characters",
+            })
+            return
+        }
+
+        try {
+            const res = await adminRegister({
+                username,
+                email,
+                password,
+                role: role,
+            })
+            console.log(res.message)
+
+            Swal.fire({
+                icon: "success",
+                title: "Admin Created",
+                text: `${username} has been added as an admin`,
+                timer: 1600,
+                showConfirmButton: false,
+            })
+
+            setNewAdminData({
+                username: "",
+                email: "",
+                password: "",
+                confirmPassword: "",
+            })
+
+            setIsAddAdminModalOpen(false)
+
+            await loadAllUsers()
+        } catch (error: any) {
+            console.error(error)
+
+            Swal.fire({
+                icon: "error",
+                title: "Failed to create admin",
+                text: error?.response?.data?.message || "Something went wrong",
+            })
+        }
+    }
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6">
