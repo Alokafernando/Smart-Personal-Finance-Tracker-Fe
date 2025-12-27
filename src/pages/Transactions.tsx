@@ -581,7 +581,7 @@ export default function TransactionsPage() {
                 }`}
               disabled={currentPage === 1}
               onClick={() => {
-                if (currentPage > 1) loadAllTransaction(currentPage - 1);
+                if (currentPage > 1) loadAllTransaction(currentPage - 1)
               }}
             >
               Previous

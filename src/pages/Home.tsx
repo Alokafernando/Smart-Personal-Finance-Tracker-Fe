@@ -40,7 +40,6 @@ export default function HomePage() {
               ? catRes.data.budgets
               : []
 
-        // ✅ chartRes is already the array
         const chartDataRes = Array.isArray(chartRes) ? chartRes : []
 
         setTransactions(transactionsData)

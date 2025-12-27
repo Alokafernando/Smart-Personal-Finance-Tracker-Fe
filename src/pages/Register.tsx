@@ -82,7 +82,7 @@ export default function Register() {
 
   const handleGoogleSignUp = () => {
     console.log("Google sign up clicked")
-    // Implement your Google OAuth logic here
+    // logic
   }
 
   return (

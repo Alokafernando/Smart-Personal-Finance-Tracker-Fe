@@ -24,7 +24,6 @@ export default function SettingsPage() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [newProfilePic, setNewProfilePic] = useState<string | null>(null)
 
-  // password regex
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
 
   // active tab

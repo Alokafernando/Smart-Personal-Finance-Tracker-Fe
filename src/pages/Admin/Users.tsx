@@ -14,8 +14,8 @@ export default function UsersPage() {
     const [filterRole, setFilterRole] = useState<"ALL" | "ADMIN" | "USER">("ALL")
     const [loading, setLoading] = useState(true)
 
-    const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
-    const [newAdminData, setNewAdminData] = useState({ username: "", email: "", password: "", confirmPassword: "", });
+    const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false)
+    const [newAdminData, setNewAdminData] = useState({ username: "", email: "", password: "", confirmPassword: "", })
 
     const [role] = useState("ADMIN")
 
