@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Plus, Pencil, Trash2, PieChart, Wallet, TrendingUp, AlertCircle, X, DollarSign, Calendar } from "lucide-react"
+import { Plus, Pencil, Trash2, PieChart, Wallet, TrendingUp, AlertCircle, X, DollarSign, } from "lucide-react"
 import {
   getAllBudgets,
   addBudget as addBudgetApi,
@@ -512,13 +512,6 @@ export default function BudgetPage() {
                   value={editBudget.spent || 0}
                   onChange={(e) => setEditBudget({ ...editBudget, spent: Number(e.target.value) })}
                 />
-              </div>
-
-              <label className="block mb-2 text-sm font-medium text-gray-700">Month</label>
-              <div className="relative mb-4">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Calendar size={18} />
-                </div>
               </div>
 
               <div className="flex gap-3 mt-6">
