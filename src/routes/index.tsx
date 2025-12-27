@@ -22,7 +22,6 @@ const AdminAnlytics = lazy(() => import("../pages/Admin/Analytics"))
 const AdminBudget = lazy(() => import("../pages/Admin/Budget"))
 const AdminCategories = lazy(() => import("../pages/Admin/Category"))
 const AllUsers = lazy(() => import("../pages/Admin/Users"))
-const Admins = lazy(() => import("../pages/Admin/Admins"))
 
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
@@ -102,7 +101,6 @@ export default function Router() {
             <Route path="/admin/settings" element={<AdminSetting />} />
             <Route path="/admin/transaction" element={<AdminTransactions />} />
             <Route path="/admin/users" element={<AllUsers />} />
-            <Route path="/admin/admins" element={<Admins />} />
 
           </Route>
 

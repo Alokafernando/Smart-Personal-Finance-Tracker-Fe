@@ -47,7 +47,6 @@ export default function Sidebar() {
   const menuItems = [
     { label: "Home", icon: Home, route: "/admin/home" },
     { label: "Users", icon: Users, route: "/admin/users" },
-    { label: "Admins", icon: UserCog, route: "/admin/admins" },
     { label: "Transactions", icon: Layers, route: "/admin/transaction" },
     { label: "Budget", icon: ChartPie, route: "/admin/budget" },
     { label: "Categories", icon: Tag, route: "/admin/categories" },
