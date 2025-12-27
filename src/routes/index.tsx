@@ -2,7 +2,6 @@ import { lazy, Suspense, type ReactNode } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { useAuth } from "../context/authContext"
 import Layout from "../components/Layout"
-import Swal from "sweetalert2"
 
 const Home = lazy(() => import("../pages/Home")) 
 const Login = lazy(() => import("../pages/Login"))
