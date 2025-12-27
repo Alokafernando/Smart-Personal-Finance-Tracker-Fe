@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { Home, BarChartBig as ChartPie, Layers, Users, BarChart3, Tag, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, UserCog, } from "lucide-react"
+import { Home, BarChartBig as ChartPie, Layers, Users, BarChart3, Tag, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight, } from "lucide-react"
 import Swal from "sweetalert2"
 import { getUserDetails } from "../services/auth"
 import { useAuth } from "../context/authContext"
