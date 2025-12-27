@@ -54,7 +54,7 @@ export default function AdminDashboard() {
 
         setRecentUsers(usersArray.slice(-5).reverse())
       } catch (error: any) {
-        console.error("Failed to fetch users:", error)
+        console.error(error)
       }
     }
 
