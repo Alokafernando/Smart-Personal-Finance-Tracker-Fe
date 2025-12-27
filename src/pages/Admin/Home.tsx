@@ -1,19 +1,27 @@
-import {
-  Users,
-  Shield,
-  UserCheck,
-  UserX,
-  BarChart3,
-  PlusCircle,
-  LogOut,
-  Settings,
-  Bell,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+import { Users, Shield, UserCheck, UserX, BarChart3, PlusCircle, LogOut, Settings,  Bell, } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import Swal from "sweetalert2"
+import { useEffect, useState } from "react"
+import { getAllUsers } from "../../services/user"
+
+interface UsersSummary {
+  total: number
+  approved: number
+  pending: number
+  rejected: number
+}
+
+interface User {
+  username: string
+  email: string
+  approved: string
+  role: string[]
+}
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [usersSummary, setUsersSummary] = useState<UsersSummary | null>(null)
+  const [recentUsers, setRecentUsers] = useState<User[]>([])
 
   const handleLogout = () => {
     Swal.fire({
@@ -25,11 +33,33 @@ export default function AdminDashboard() {
       cancelButtonColor: "#9ca3af",
     }).then((res) => {
       if (res.isConfirmed) {
-        localStorage.clear();
-        navigate("/login");
+        localStorage.clear()
+        navigate("/login")
       }
-    });
-  };
+    })
+  }
+
+  useEffect(() => {
+    const fetchUsersSummary = async () => {
+      try {
+        const res: any = await getAllUsers()
+
+        const usersArray = Array.isArray(res.users) ? res.users : []
+        const total = usersArray.length
+        const approved = usersArray.filter((u: { approved: string }) => u.approved === "APPROVED").length
+        const pending = usersArray.filter((u: { approved: string }) => u.approved === "PENDING").length
+        const rejected = usersArray.filter((u: { approved: string }) => u.approved === "REJECTED").length
+
+        setUsersSummary({ total, approved, pending, rejected })
+
+        setRecentUsers(usersArray.slice(-5).reverse())
+      } catch (error: any) {
+        console.error("Failed to fetch users:", error)
+      }
+    }
+
+    fetchUsersSummary()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6">
@@ -49,12 +79,16 @@ export default function AdminDashboard() {
         </header>
 
         {/* STATS CARDS */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Users" value="1,284" icon={Users} color="blue" />
-          <StatCard title="Approved Users" value="1,020" icon={UserCheck} color="green" />
-          <StatCard title="Pending Users" value="64" icon={Shield} color="yellow" />
-          <StatCard title="Rejected Users" value="200" icon={UserX} color="red" />
-        </section>
+        {usersSummary ? (
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard title="Total Users" value={usersSummary.total.toString()} icon={Users} color="blue" />
+            <StatCard title="Approved Users" value={usersSummary.approved.toString()} icon={UserCheck} color="green" />
+            <StatCard title="Pending Users" value={usersSummary.pending.toString()} icon={Shield} color="yellow" />
+            <StatCard title="Rejected Users" value={usersSummary.rejected.toString()} icon={UserX} color="red" />
+          </section>
+        ) : (
+          <p className="text-gray-500">Loading stats...</p>
+        )}
 
         {/* QUICK ACTIONS */}
         <section className="flex flex-wrap gap-4 mt-4">
@@ -68,43 +102,53 @@ export default function AdminDashboard() {
 
           {/* RECENT USERS */}
           <Card title="Recent Users">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex justify-between items-center p-3 rounded-xl mb-2 bg-white shadow hover:shadow-lg transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-                    JD
+            {recentUsers.length > 0 ? (
+              recentUsers.map((u, i) => (
+                <div key={i} className="flex justify-between items-center p-3 rounded-xl mb-2 bg-white shadow hover:shadow-lg transition">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
+                      {u.username.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{u.username}</p>
+                      <p className="text-xs text-gray-500">{u.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">John Doe</p>
-                    <p className="text-xs text-gray-500">john@mail.com</p>
-                  </div>
+                  <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                    u.approved === "APPROVED" ? "bg-green-100 text-green-700" :
+                    u.approved === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                    "bg-red-100 text-red-700"
+                  }`}>
+                    {u.approved}
+                  </span>
                 </div>
-                <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
-                  Approved
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500">No users found</p>
+            )}
           </Card>
 
           {/* SYSTEM SUMMARY */}
           <Card title="System Summary">
-            <SummaryRow label="Total Transactions" value="8,420" iconColor="blue" />
-            <SummaryRow label="Monthly Growth" value="+12%" iconColor="green" />
-            <SummaryRow label="Active Admins" value="4" iconColor="purple" />
-            <SummaryRow label="Pending Requests" value="64" iconColor="yellow" />
-            <SummaryRow label="Blocked Users" value="200" iconColor="red" />
+            {usersSummary ? (
+              <>
+                <SummaryRow label="Total Users" value={usersSummary.total.toString()} iconColor="blue" />
+                <SummaryRow label="Approved Users" value={usersSummary.approved.toString()} iconColor="green" />
+                <SummaryRow label="Pending Users" value={usersSummary.pending.toString()} iconColor="yellow" />
+                <SummaryRow label="Rejected Users" value={usersSummary.rejected.toString()} iconColor="red" />
+              </>
+            ) : (
+              <p className="text-gray-500">Loading summary...</p>
+            )}
           </Card>
-        </section>
 
+        </section>
       </div>
     </div>
-  );
+  )
 }
 
-/* ---------- Reusable Components ---------- */
+/* ----------  Components ---------- */
 
 function Card({ title, children }: any) {
   return (
@@ -112,7 +156,7 @@ function Card({ title, children }: any) {
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
       {children}
     </div>
-  );
+  )
 }
 
 function StatCard({ title, value, icon: Icon, color }: any) {
@@ -122,7 +166,7 @@ function StatCard({ title, value, icon: Icon, color }: any) {
     yellow: "bg-yellow-100 text-yellow-700",
     red: "bg-red-100 text-red-700",
     purple: "bg-purple-100 text-purple-700",
-  };
+  }
 
   return (
     <div className="flex items-center gap-4 p-5 bg-white rounded-2xl shadow hover:shadow-xl transition transform hover:-translate-y-1">
@@ -134,7 +178,7 @@ function StatCard({ title, value, icon: Icon, color }: any) {
         <p className="text-2xl font-bold text-gray-900">{value}</p>
       </div>
     </div>
-  );
+  )
 }
 
 function ActionBtn({ icon: Icon, label, onClick }: any) {
@@ -145,7 +189,7 @@ function ActionBtn({ icon: Icon, label, onClick }: any) {
     >
       <Icon size={18} /> {label}
     </button>
-  );
+  )
 }
 
 function IconBtn({ icon: Icon, onClick, danger }: any) {
@@ -158,7 +202,7 @@ function IconBtn({ icon: Icon, onClick, danger }: any) {
     >
       <Icon size={18} />
     </button>
-  );
+  )
 }
 
 function SummaryRow({ label, value, iconColor }: any) {
@@ -168,25 +212,11 @@ function SummaryRow({ label, value, iconColor }: any) {
     yellow: "bg-yellow-100 text-yellow-700",
     red: "bg-red-100 text-red-700",
     purple: "bg-purple-100 text-purple-700",
-  };
+  }
   return (
     <div className="flex justify-between items-center p-4 mb-2 bg-gray-50 rounded-xl shadow-sm hover:bg-gray-100 transition">
       <span className="text-gray-600">{label}</span>
       <span className={`font-semibold px-3 py-1 rounded-full ${colors[iconColor]}`}>{value}</span>
     </div>
-  );
-}
-
-function AnalyticsCard({ title, color, value }: any) {
-  const colors: any = {
-    blue: "from-blue-500 to-blue-400",
-    green: "from-green-500 to-green-400",
-    purple: "from-purple-500 to-purple-400",
-  };
-  return (
-    <div className={`bg-gradient-to-r ${colors[color]} p-6 rounded-2xl shadow text-white flex flex-col justify-between`}>
-      <p className="font-semibold">{title}</p>
-      <p className="text-2xl font-bold mt-2">{value}</p>
-    </div>
-  );
+  )
 }
