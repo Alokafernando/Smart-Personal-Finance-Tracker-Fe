@@ -73,7 +73,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex gap-3">
             <IconBtn icon={Bell} />
-            <IconBtn icon={Settings} />
+            <IconBtn icon={Settings} onClick={() => navigate("/admin/settings")} />
             <IconBtn icon={LogOut} danger onClick={handleLogout} />
           </div>
         </header>
