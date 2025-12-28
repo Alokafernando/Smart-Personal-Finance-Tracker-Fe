@@ -23,6 +23,7 @@ const AdminBudget = lazy(() => import("../pages/Admin/Budget"))
 const AdminCategories = lazy(() => import("../pages/Admin/Category"))
 const AllUsers = lazy(() => import("../pages/Admin/Users"))
 
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"))
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
 
@@ -68,6 +69,7 @@ export default function Router() {
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route
             element={
@@ -83,7 +85,7 @@ export default function Router() {
             <Route path="/analytics" element={<Anlytics />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/categories" element={<Categories />} />
-
+            
           </Route>
 
           <Route

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { getUserDetails, login } from "../services/auth"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/authContext"
 import Swal from "sweetalert2"
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Wallet, TrendingUp, Shield, Zap } from "lucide-react"
@@ -186,12 +186,12 @@ export default function Login() {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-[#1a1a1a] text-sm font-medium">Password</label>
-                <a
-                  href="/forgot-password"
+                <Link
+                  to="/forgot-password"
                   className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <div
                 className={`relative rounded-2xl transition-all duration-300 ${focusedInput === "password" ? "ring-2 ring-amber-500/50 shadow-lg shadow-amber-500/10" : ""}`}
