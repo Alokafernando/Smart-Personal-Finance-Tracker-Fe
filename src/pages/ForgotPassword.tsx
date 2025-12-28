@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { Wallet } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Swal from "sweetalert2"
 import { sendOtp, verifyOtpAndResetPassword } from "../services/auth"
 
@@ -10,6 +10,8 @@ export default function ForgotPassword() {
   const [otp, setOtp] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const navigate = useNavigate();
 
   // Send OTP
   const handleSendOtp = async (e: FormEvent) => {
@@ -42,7 +44,7 @@ export default function ForgotPassword() {
     setLoading(true)
     try {
       const res = await verifyOtpAndResetPassword({ email, otp, newPassword })
-      Swal.fire({ icon: "success", title: "Success", text: res.message, confirmButtonColor: "#f59e0b" })
+      Swal.fire({ icon: "success", title: "Success", text: res.message, confirmButtonColor: "#f59e0b" }).then(() => { navigate("/login") })
       setStep("EMAIL") // Reset step
       setEmail("")
       setOtp("")
