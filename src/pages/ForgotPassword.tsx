@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react"
 import { Mail, Wallet, TrendingUp, Shield, Zap, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import Swal from "sweetalert2"
+import { sendOtp } from "../services/auth"
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("")
@@ -23,15 +24,24 @@ export default function ForgotPassword() {
 
     setLoading(true)
 
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      const res = await sendOtp(email)
       Swal.fire({
         icon: "success",
         title: "Check your email",
-        text: "We’ve sent password reset instructions to your email.",
+        text: res.message || "We’ve sent password reset instructions to your email.",
         confirmButtonColor: "#f59e0b",
       })
-    }, 1200)
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops!",
+        text: err.response?.data?.message || "Something went wrong.",
+        confirmButtonColor: "#f59e0b",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -106,19 +116,17 @@ export default function ForgotPassword() {
                 Email address
               </label>
               <div
-                className={`relative rounded-2xl transition-all ${
-                  focusedInput === "email"
+                className={`relative rounded-2xl transition-all ${focusedInput === "email"
                     ? "ring-2 ring-amber-500/50 shadow-lg shadow-amber-500/10"
                     : ""
-                }`}
+                  }`}
               >
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail
-                    className={`w-5 h-5 ${
-                      focusedInput === "email"
+                    className={`w-5 h-5 ${focusedInput === "email"
                         ? "text-amber-500"
                         : "text-gray-400"
-                    }`}
+                      }`}
                   />
                 </div>
                 <input

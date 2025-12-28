@@ -7,6 +7,16 @@ type RegisterDataType = {
   role: string
 }
 
+type SendOtpResponse = {
+  message: string
+}
+
+type VerifyOtpData = {
+  email: string
+  otp: string
+  newPassword: string
+}
+
 export const register = async (data: RegisterDataType) => {
   const res = await api.post("/auth/register", data)
   return res.data
@@ -34,5 +44,15 @@ export const passwordChangeHandle = async ( currentPassword: string, newPassword
 
 export const adminRegister = async (data: RegisterDataType) => {
   const res = await api.post("/auth/admin/register", data)
+  return res.data
+}
+
+export const sendOtp = async (email: string): Promise<SendOtpResponse> => {
+  const res = await api.post("/auth/send-otp", { email })
+  return res.data
+}
+
+export const verifyOtpAndResetPassword = async (data: VerifyOtpData) => {
+  const res = await api.post("/auth/verify-otp", data)
   return res.data
 }
