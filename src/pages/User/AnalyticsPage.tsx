@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Area, AreaChart, } from "recharts"
 import { BarChart3, PieChartIcon, TrendingUp, TrendingDown, DollarSign, Wallet, ArrowUpRight, ArrowDownRight, Download, Filter, } from "lucide-react"
-import { getAnalytics, downloadAnalyticsPDF } from "../services/analytics"
-import type { AnalyticsSummary, MonthlyAnalytics, CategoryAnalytics, AnalyticsFilter, } from "../services/analytics"
+import { getAnalytics, downloadAnalyticsPDF } from "../../services/analytics"
+import type { AnalyticsSummary, MonthlyAnalytics, CategoryAnalytics, AnalyticsFilter, } from "../../services/analytics"
 import Swal from "sweetalert2"
 
 

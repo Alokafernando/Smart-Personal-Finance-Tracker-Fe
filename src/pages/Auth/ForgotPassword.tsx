@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react"
 import { Wallet } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import Swal from "sweetalert2"
-import { sendOtp, verifyOtpAndResetPassword } from "../services/auth"
+import { sendOtp, verifyOtpAndResetPassword } from "../../services/auth"
 
 export default function ForgotPassword() {
   const [step, setStep] = useState<"EMAIL" | "OTP">("EMAIL")

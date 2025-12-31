@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Plus, Pencil, Trash2, Layers, X, Tag, TrendingUp, TrendingDown, Grid3X3, Search } from "lucide-react"
-import { addCategories, getAllCategories, updateCategory, deleteCategory } from "../services/category"
-import type { Category } from "../services/category"
+import { addCategories, getAllCategories, updateCategory, deleteCategory } from "../../services/category"
+import type { Category } from "../../services/category"
 import Swal from "sweetalert2"
 
 export default function CategoriesPage() {

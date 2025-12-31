@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, } from "recharts"
 import { PlusCircle, FileText, ArrowUpCircle, ArrowDownCircle, Wallet, TrendingUp, CreditCard, PiggyBank, Target, Bell, Settings, LogOut, ChevronsDown } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
-import { getLatestTransaction } from "../services/transaction"
-import { getLatestBudgets } from "../services/budget"
-import { getBalanceTrend } from "../services/analytics"
+import { getLatestTransaction } from "../../services/transaction"
+import { getLatestBudgets } from "../../services/budget"
+import { getBalanceTrend } from "../../services/analytics"
 import Swal from "sweetalert2"
 
 const COLORS = ["#F59E0B", "#22C55E", "#F97316", "#EF4444"]

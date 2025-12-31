@@ -3,16 +3,19 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { useAuth } from "../context/authContext"
 import Layout from "../components/Layout"
 
-const Home = lazy(() => import("../pages/Home")) 
-const Login = lazy(() => import("../pages/Login"))
-const Register = lazy(() => import("../pages/Register"))
 const Welcome = lazy(() => import("../pages/Welcome"))
-const Transactions = lazy(() => import("../pages/Transactions"))
-const Help = lazy(() => import("../pages/HelpPage"))
-const Setting = lazy(() => import("../pages/SettingsPage"))
-const Anlytics = lazy(() => import("../pages/AnalyticsPage"))
-const Budget = lazy(() => import("../pages/Budget"))
-const Categories = lazy(() => import("../pages/Categories"))
+
+const Login = lazy(() => import("../pages/Auth/Login"))
+const Register = lazy(() => import("../pages/Auth/Register"))
+const ForgotPassword = lazy(() => import("../pages/Auth/ForgotPassword"))
+
+const Home = lazy(() => import("../pages/User/Home")) 
+const Transactions = lazy(() => import("../pages/User/Transactions"))
+const Help = lazy(() => import("../pages/User/HelpPage"))
+const Setting = lazy(() => import("../pages/User/SettingsPage"))
+const Anlytics = lazy(() => import("../pages/User/AnalyticsPage"))
+const Budget = lazy(() => import("../pages/User/Budget"))
+const Categories = lazy(() => import("../pages/User/Categories"))
 
 const AdminHome = lazy(() => import("../pages/Admin/Home"))
 const AdminTransactions = lazy(() => import("../pages/Admin/Transaction"))
@@ -23,7 +26,6 @@ const AdminBudget = lazy(() => import("../pages/Admin/Budget"))
 const AdminCategories = lazy(() => import("../pages/Admin/Category"))
 const AllUsers = lazy(() => import("../pages/Admin/Users"))
 
-const ForgotPassword = lazy(() => import("../pages/ForgotPassword"))
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
 

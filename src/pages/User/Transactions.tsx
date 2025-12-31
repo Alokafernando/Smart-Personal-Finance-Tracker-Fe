@@ -1,10 +1,10 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, Wallet, ArrowUpDown, Receipt, Camera, Upload, Scan, Sparkles, X, Check, Loader2, ImageIcon, } from "lucide-react"
-import { createTransaction, deleteTransaction, getAllTransactions, updateTransaction, type Transaction } from "../services/transaction"
-import { getAllCategories, } from "../services/category"
+import { createTransaction, deleteTransaction, getAllTransactions, updateTransaction, type Transaction } from "../../services/transaction"
+import { getAllCategories, } from "../../services/category"
 import Swal from "sweetalert2"
-import { uploadReceiptOCR } from "../services/ocr"
+import { uploadReceiptOCR } from "../../services/ocr"
 
 
 

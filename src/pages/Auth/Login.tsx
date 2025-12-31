@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react"
-import { getUserDetails, login } from "../services/auth"
+import { getUserDetails, login } from "../../services/auth"
 import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../context/authContext"
+import { useAuth } from "../../context/authContext"
 import Swal from "sweetalert2"
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Wallet, TrendingUp, Shield, Zap } from "lucide-react"
 

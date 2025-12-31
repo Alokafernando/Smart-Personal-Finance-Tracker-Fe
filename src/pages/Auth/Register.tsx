@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate } from "react-router-dom"
-import { register } from "../services/auth"
+import { register } from "../../services/auth"
 import Swal from "sweetalert2"
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Wallet, TrendingUp, Shield, Zap, CheckCircle } from "lucide-react"
 

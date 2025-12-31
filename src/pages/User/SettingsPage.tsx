@@ -2,9 +2,9 @@ import type React from "react"
 import { useEffect, useState, type ChangeEvent } from "react"
 import { User, Save, Camera, Mail, Bell, Globe, ShieldCheck, Smartphone, Lock, X, Eye, EyeOff, Settings, ChevronRight, Shield, HelpCircle } from "lucide-react"
 import defaultUser from "../assets/default-user.jpg"
-import { getUserDetails, passwordChangeHandle } from "../services/auth"
-import { updateProfileImage, updateUserDetails } from "../services/user"
-import { useAuth } from "../context/authContext"
+import { getUserDetails, passwordChangeHandle } from "../../services/auth"
+import { updateProfileImage, updateUserDetails } from "../../services/user"
+import { useAuth } from "../../context/authContext"
 import Swal from "sweetalert2"
 
 export default function SettingsPage() {

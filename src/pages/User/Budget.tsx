@@ -5,9 +5,9 @@ import {
   addBudget as addBudgetApi,
   updateBudget as updateBudgetApi,
   deleteBudget as deleteBudgetApi,
-} from "../services/budget"
-import { getAllCategories, type Category } from "../services/category"
-import type { Budget } from "../services/budget"
+} from "../../services/budget"
+import { getAllCategories, type Category } from "../../services/category"
+import type { Budget } from "../../services/budget"
 import Swal from "sweetalert2"
 
 export default function BudgetPage() {
