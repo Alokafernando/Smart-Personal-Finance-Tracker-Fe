@@ -27,6 +27,7 @@ This is the final project for the Rapid Application Development module (ITS2020)
   * [Prerequisites](#prerequisites)
   * [Frontend Setup](#frontend-setup)
   * [Backend Setup](#backend-setup)
+* [Deployed URLs](#deployed-urls) 
 * [Main Features](#main-features)
   * [User Features](#user-features)
   * [Admin Features](#admin-features)
@@ -161,6 +162,15 @@ npm start
 Backend will run on: http://localhost:5000
 
 ✅ The backend handles JWT authentication, transaction CRUD, OCR processing, PDF report generation, and email OTP functionality.
+
+---
+
+## <a name="deployed-urls"></a>🌍 Deployed URLs
+
+- **Frontend:** [https://smart-finance-tracker-frontend.vercel.app](https://smart-finance-tracker-frontend.vercel.app)  
+- **Backend:** [https://smart-finance-tracker-backend.onrender.com](https://smart-finance-tracker-backend.onrender.com)
+
+> 💡 You can access the fully deployed application from these URLs without running it locally.
 
 ---
 
@@ -325,6 +335,7 @@ For any questions or support regarding the **Smart Personal Finance Tracker**, y
 - **Name:** Buddhika Fernando  
 - **Email:** [buddhika.fernando@example.com](mailto:buddhikafernando19@example.com)   
 - **LinkedIn:** [Buddhika Fernando](https://www.linkedin.com/in/buddhika-fernando-73606131a/)
+
 
 
 
