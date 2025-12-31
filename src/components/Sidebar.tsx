@@ -4,6 +4,7 @@ import { Home, BarChartBig as ChartPie, Layers, BarChart3, Tag, Settings, HelpCi
 import Swal from "sweetalert2"
 import { getUserDetails } from "../services/auth"
 import { useAuth } from "../context/authContext"
+import defaultUser from "../assets/default-user.jpg"
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -72,7 +73,7 @@ export default function Sidebar() {
             <div className="relative flex-shrink-0">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-0.5">
                 <img
-                  src={user?.profileURL || "/assets/default-user.jpg"}
+                  src={user?.profileURL || defaultUser}
                   alt="User"
                   className="w-full h-full rounded-xl object-cover bg-[#faf9f7]"
                 />
