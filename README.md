@@ -167,7 +167,7 @@ Backend will run on: http://localhost:5000
 
 ## <a name="deployed-urls"></a>🌍 Deployed URLs
 
-- **Frontend:** [https://smart-finance-tracker-frontend.vercel.app](https://smart-personal-finance-tracker-be.vercel.app)  
+- **Frontend:** [https://smart-finance-tracker-frontend.vercel.app](https://smart-personal-finance-tracker-fe.vercel.app)  
 - **Backend:** [https://smart-finance-tracker-backend.vercel.com](https://smart-personal-finance-tracker-be.vercel.app)
 
 > 💡 You can access the fully deployed application from these URLs without running it locally.
@@ -335,6 +335,7 @@ For any questions or support regarding the **Smart Personal Finance Tracker**, y
 - **Name:** Buddhika Fernando  
 - **Email:** [buddhika.fernando@example.com](mailto:buddhikafernando19@example.com)   
 - **LinkedIn:** [Buddhika Fernando](https://www.linkedin.com/in/buddhika-fernando-73606131a/)
+
 
 
 
