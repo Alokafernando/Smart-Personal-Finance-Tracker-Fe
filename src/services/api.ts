@@ -2,11 +2,7 @@ import axios, { AxiosError } from "axios"
 import { refreshTokens } from "./auth"
 
 const api = axios.create({
-  baseURL: "https://smart-personal-finance-tracker-be.vercel.app/api/v1",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  }
+  baseURL: "https://smart-personal-finance-tracker-be-alokafernandos-projects.vercel.app/api/v1",
 })
 
 const PUBLIC_ENDPOINTS = ["/auth/login", "/auth/register"]
