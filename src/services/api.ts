@@ -3,7 +3,10 @@ import { refreshTokens } from "./auth"
 
 const api = axios.create({
   baseURL: "https://smart-personal-finance-tracker-be.vercel.app/api/v1",
-  withCredentials: true
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  }
 })
 
 const PUBLIC_ENDPOINTS = ["/auth/login", "/auth/register"]
